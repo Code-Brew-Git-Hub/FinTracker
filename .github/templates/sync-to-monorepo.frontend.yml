@@ -1,0 +1,26 @@
+# Installed in trydov1k/FinTracker.Frontend as .github/workflows/sync-to-monorepo.yml
+# (will move to Code-Brew-Git-Hub/FinTracker.Frontend later)
+#
+# Required secret in FinTracker.Frontend repo settings:
+#   MONOREPO_SYNC_TOKEN — PAT with repo scope for Code-Brew-Git-Hub/FinTracker
+
+name: Sync to monorepo
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  notify-monorepo:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Trigger monorepo sync
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
+          repository: Code-Brew-Git-Hub/FinTracker
+          event-type: sync-frontend
