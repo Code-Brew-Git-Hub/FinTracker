@@ -1,0 +1,20 @@
+# Frontend
+FinTracker.Frontend/node_modules/
+FinTracker.Frontend/dist/
+FinTracker.Frontend/dist-ssr/
+FinTracker.Frontend/.env
+FinTracker.Frontend/*.local
+
+# Backend (.NET)
+**/bin/
+**/obj/
+**/.vs/
+FinTracker.Backend/.idea/
+FinTracker.Backend/.env
+
+# Build / tooling
+*.user
+*.suo
+*.log
+.DS_Store
+Thumbs.db
