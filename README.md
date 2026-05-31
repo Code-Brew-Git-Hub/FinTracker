@@ -46,7 +46,7 @@ Workflow [sync-from-subrepos.yml](.github/workflows/sync-from-subrepos.yml) та
 - вручную: **Actions → Sync from Backend / Frontend repos → Run workflow**
 - по расписанию: раз в час (на случай, если триггер не настроен)
 
-Целевая ветка монорепозитория задаётся переменной `MONOREPO_BRANCH` в workflow (по умолчанию `main`).
+Целевая ветка монорепозитория задаётся переменной `MONOREPO_BRANCH` в workflow (сейчас `Dima's-final-version`). Frontend-репозиторий: `trydov1k/FinTracker.Frontend`.
 
 ## Документация
 

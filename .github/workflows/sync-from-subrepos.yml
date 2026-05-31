@@ -27,8 +27,8 @@ concurrency:
 
 env:
   BACKEND_REPOSITORY: Code-Brew-Git-Hub/FinTracker.Backend
-  FRONTEND_REPOSITORY: Code-Brew-Git-Hub/FinTracker.Frontend
-  MONOREPO_BRANCH: main
+  FRONTEND_REPOSITORY: trydov1k/FinTracker.Frontend
+  MONOREPO_BRANCH: Dima's-final-version
 
 jobs:
   sync-backend:
