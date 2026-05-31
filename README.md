@@ -18,35 +18,11 @@ FinTracker/
 
 ## Синхронизация с отдельными репозиториями
 
-Backend и Frontend могут жить в отдельных репозиториях на GitHub. При push в `main` этих репозиториев изменения можно автоматически подтягивать сюда.
+Backend и Frontend также живут в отдельных репозиториях на GitHub. При push в `main` изменения автоматически подтягиваются в этот монорепозиторий (ветка `Dima's-final-version`).
 
-### 1. Секрет в монорепозитории
+Workflow [sync-from-subrepos.yml](.github/workflows/sync-from-subrepos.yml) также можно запустить вручную (**Actions → Sync from Backend / Frontend repos**) или дождаться hourly sync.
 
-В **Settings → Secrets → Actions** репозитория `FinTracker` добавьте:
-
-| Secret | Описание |
-|--------|----------|
-| `MONOREPO_SYNC_TOKEN` | [Fine-grained PAT](https://github.com/settings/tokens) с доступом на чтение `FinTracker.Backend`, `FinTracker.Frontend` и запись в `FinTracker` |
-
-### 2. Триггеры в отдельных репозиториях
-
-Скопируйте шаблоны в корень каждого репозитория как `.github/workflows/sync-to-monorepo.yml`:
-
-- Backend: [.github/templates/sync-to-monorepo.backend.yml](.github/templates/sync-to-monorepo.backend.yml)
-- Frontend: [.github/templates/sync-to-monorepo.frontend.yml](.github/templates/sync-to-monorepo.frontend.yml)
-
-В **Backend** и **Frontend** добавьте тот же секрет `MONOREPO_SYNC_TOKEN` (PAT с правом `repository_dispatch` на монорепозиторий).
-
-После push в `main` backend/frontend → workflow шлёт сигнал → монорепозиторий копирует актуальный код.
-
-### 3. Ручной и фоновый sync
-
-Workflow [sync-from-subrepos.yml](.github/workflows/sync-from-subrepos.yml) также запускается:
-
-- вручную: **Actions → Sync from Backend / Frontend repos → Run workflow**
-- по расписанию: раз в час (на случай, если триггер не настроен)
-
-Целевая ветка монорепозитория задаётся переменной `MONOREPO_BRANCH` в workflow (сейчас `Dima's-final-version`). Frontend-репозиторий: `trydov1k/FinTracker.Frontend`.
+Источники: `Code-Brew-Git-Hub/FinTracker.Backend`, `trydov1k/FinTracker.Frontend`.
 
 ## Документация
 
