@@ -150,6 +150,9 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
         if (!includeDeleted)
             query = query.Where(t => !t.IsDeleted);
 
+        query = query
+            .OrderBy(t => t.DateUtc)
+            .ThenBy(t => t.Id);
 
         // Пагинация
         query = query
