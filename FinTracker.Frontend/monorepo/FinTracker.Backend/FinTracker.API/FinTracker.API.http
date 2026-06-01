@@ -1,0 +1,24 @@
+@FinTracker.API_HostAddress = https://localhost:7089
+
+// Тестирование запросов
+
+// TagsController
+
+GET {{FinTracker.API_HostAddress}}/api/tags
+Accept: application/json
+
+###
+
+POST {{FinTracker.API_HostAddress}}/api/tags
+Content-Type: application/json
+
+{
+  "name": "Тестовый тег"
+}
+
+###
+
+@id=8be8c878-7035-452c-a29c-ed2566d8a53f
+DELETE {{FinTracker.API_HostAddress}}/api/tags/{{id}}
+
+###
