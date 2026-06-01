@@ -17,7 +17,7 @@ env:
 
 jobs:
   sync:
-    name: Push to ${{ env.MONOREPO_SUBPATH }}
+    name: Push to FinTracker.Frontend
     runs-on: ubuntu-24.04
 
     steps:
