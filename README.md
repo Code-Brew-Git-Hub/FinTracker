@@ -1,6 +1,17 @@
 # FinTracker
 Сервис для сбора и агрегирования финансовых трат 
 
+### Запуск (Docker Compose)
+
+```bash
+docker compose up --build
+```
+
+- Frontend: http://localhost:8080  
+- API / Swagger: http://localhost:5009/swagger  
+
+Подробнее: [docs/docker.md](docs/docker.md)
+
 ### [Требования](ТребованияV2.md)
 ### [Аналитика проекта](analytic.md)
 ### [Архитектура проекта (backend-часть)](Arhitecture.md)
