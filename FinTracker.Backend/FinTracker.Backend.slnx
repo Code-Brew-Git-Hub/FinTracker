@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="FinTracker.API/FinTracker.API.csproj" />
+  <Project Path="FinTracker.Data/FinTracker.Data.csproj" />
+  <Project Path="FinTracker.Domain/FinTracker.Domain.csproj" />
+  <Project Path="FinTracker.Parser/FinTracker.Parser.csproj" />
+</Solution>
