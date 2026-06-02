@@ -1,22 +1,59 @@
 # FinTracker
+
 Сервис для сбора и агрегирования финансовых трат 
 
-### Запуск (Docker Compose)
+## Что внутри
+
+- `FinTracker.Backend` — ASP.NET Core API + PostgreSQL
+- `FinTracker.Frontend` — клиентская часть (HTML/CSS/JavaScript)
+- `docs` — документация по запуску и аналитике
+
+## Быстрый старт (Docker Compose)
 
 ```bash
 docker compose up --build
 ```
 
-- Frontend: http://localhost:8080  
-- API / Swagger: http://localhost:5009/swagger  
+После запуска:
 
-Подробнее: [docs/docker.md](docs/docker.md)
+- Frontend: [http://localhost:8080](http://localhost:8080)
+- API: [http://localhost:5009](http://localhost:5009)
+- Swagger: [http://localhost:5009/swagger](http://localhost:5009/swagger)
 
-### [Требования](ТребованияV2.md)
-### [Аналитика проекта](analytic.md)
-### [Архитектура проекта (backend-часть)](Arhitecture.md)
+Остановка:
 
-### Участники
+```bash
+docker compose down
+```
+
+## Переменные окружения
+
+Можно создать локальный `.env` на основе шаблона:
+
+```bash
+cp .env.example .env
+```
+
+Основные переменные:
+
+- `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- `API_PORT`, `FRONTEND_PORT`
+
+## Документация
+
+- Запуск в Docker: [docs/docker.md](docs/docker.md)
+- Синхронизация субрепозиториев: [docs/sync-subrepos.md](docs/sync-subrepos.md)
+- Аналитика (папка): [docs/analitics](docs/analitics)
+- Требования заказчика: [docs/analitics/Требования заказчика.md](docs/analitics/Требования%20заказчика.md)
+- Общая аналитика: [docs/analitics/analytic.md](docs/analitics/analytic.md)
+- Модуль агрегации: [docs/analitics/agregation_module.md](docs/analitics/agregation_module.md)
+- Валидация транзакций: [docs/analitics/analytic_transaction_validation.md](docs/analitics/analytic_transaction_validation.md)
+- Переводы между счетами: [docs/analitics/analytic_transfers_between_accounts.md](docs/analitics/analytic_transfers_between_accounts.md)
+- Компенсации: [docs/analitics/analytic_compensations.md](docs/analitics/analytic_compensations.md)
+- Позиции (массив): [docs/analitics/analytic_positions_array.md](docs/analitics/analytic_positions_array.md)
+
+## Команда
+
 - [Куратор](https://github.com/RefGnom)
 - [Backend-разработчик](https://github.com/trydov1k)
 - [Frontend-разработчик](https://github.com/Omnifisans)
