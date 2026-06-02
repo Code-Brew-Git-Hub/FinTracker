@@ -26,7 +26,7 @@ concurrency:
 env:
   BACKEND_REPOSITORY: Code-Brew-Git-Hub/FinTracker.Backend
   FRONTEND_REPOSITORY: Code-Brew-Git-Hub/FinTracker.Frontend
-  MONOREPO_BRANCH: "Lenyas's-final-version"
+  MONOREPO_BRANCH: "autodeploy"
 
 jobs:
   sync-backend:
