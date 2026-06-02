@@ -10,6 +10,8 @@
 
 ## Быстрый старт (Docker Compose)
 
+Нужна подробная инструкция с нуля: [docs/docker-for-beginners.md](docs/docker-for-beginners.md)
+
 ```bash
 docker compose up --build
 ```
@@ -41,6 +43,7 @@ cp .env.example .env
 
 ## Документация
 
+- Подробный запуск для начинающих: [docs/docker-for-beginners.md](docs/docker-for-beginners.md)
 - Запуск в Docker: [docs/docker.md](docs/docker.md)
 - Синхронизация субрепозиториев: [docs/sync-subrepos.md](docs/sync-subrepos.md)
 - Аналитика (папка): [docs/analitics](docs/analitics)
