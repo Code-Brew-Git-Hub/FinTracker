@@ -50,8 +50,10 @@ jobs:
           token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
           path: subrepo/backend
 
-      - name: Copy backend into monorepo
+      - name: Replace backend folder in monorepo
         run: |
+          rm -rf FinTracker.Backend
+          mkdir -p FinTracker.Backend
           rsync -av --delete \
             --exclude '.git/' \
             --exclude '.github/workflows/sync-to-monorepo.yml' \
@@ -95,8 +97,10 @@ jobs:
           token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
           path: subrepo/frontend
 
-      - name: Copy frontend into monorepo
+      - name: Replace frontend folder in monorepo
         run: |
+          rm -rf FinTracker.Frontend
+          mkdir -p FinTracker.Frontend
           rsync -av --delete \
             --exclude '.git/' \
             --exclude '.github/workflows/sync-to-monorepo.yml' \
