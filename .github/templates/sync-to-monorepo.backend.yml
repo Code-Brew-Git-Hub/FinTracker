@@ -16,7 +16,7 @@ env:
   MONOREPO_SUBPATH: FinTracker.Backend
 
 concurrency:
-  group: sync-to-monorepo-${{ env.MONOREPO_REPOSITORY }}
+  group: sync-to-monorepo-Code-Brew-Git-Hub/FinTracker
   cancel-in-progress: false
 
 jobs:
