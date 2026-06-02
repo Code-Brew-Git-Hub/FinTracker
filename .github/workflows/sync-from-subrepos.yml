@@ -74,14 +74,18 @@ jobs:
             exit 0
           fi
           git commit -m "chore: sync FinTracker.Backend from ${{ env.BACKEND_REPOSITORY }}"
-          git push
+          git pull --rebase origin "${MONOREPO_BRANCH}"
+          git push origin "HEAD:${MONOREPO_BRANCH}"
 
   sync-frontend:
     name: Sync Frontend
+    needs: sync-backend
     runs-on: ubuntu-24.04
     if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' && (github.event.inputs.target == 'both' || github.event.inputs.target == 'frontend')
+      always() &&
+      (needs.sync-backend.result == 'success' || needs.sync-backend.result == 'skipped') &&
+      (github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.target == 'both' || github.event.inputs.target == 'frontend'))
 
     steps:
       - name: Checkout monorepo
@@ -120,4 +124,5 @@ jobs:
             exit 0
           fi
           git commit -m "chore: sync FinTracker.Frontend from ${{ env.FRONTEND_REPOSITORY }}"
-          git push
+          git pull --rebase origin "${MONOREPO_BRANCH}"
+          git push origin "HEAD:${MONOREPO_BRANCH}"
