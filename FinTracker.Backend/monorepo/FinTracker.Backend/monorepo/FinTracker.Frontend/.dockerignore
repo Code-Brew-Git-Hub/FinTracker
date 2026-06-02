@@ -1,6 +1,0 @@
-**/.git
-**/.github
-**/monorepo
-**/*.md
-.env
-.env.*
