@@ -10,6 +10,8 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
+        LocalEnvLoader.LoadIfPresent();
+        
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddRepositories();

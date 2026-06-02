@@ -12,11 +12,11 @@ public static class Extensions
 {
     public static IServiceCollection AddContext(this IServiceCollection serviceCollection)
     {
-        var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-        var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-        var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "FinTrackerDb";
-        var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
-        var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "123456";
+        var dbHost = RequireEnv("DB_HOST", "Переменная DB_HOST (Хост БД) не задана");
+        var dbPort = RequireEnv("DB_PORT", "Переменная DB_PORT (Порт БД) не задана");
+        var dbName = RequireEnv("DB_NAME", "Переменная DB_NAME (Имя базы данных) не задана");
+        var dbUser = RequireEnv("DB_USER", "Переменная DB_USER (Пользователь БД) не задана");
+        var dbPassword = RequireEnv("DB_PASSWORD", "Переменная DB_PASSWORD (Пароль БД) не задана");
 
         serviceCollection.AddDbContext<AppDbContext>(x =>
         {
@@ -24,6 +24,15 @@ public static class Extensions
         });
 
         return serviceCollection;
+    }
+
+    private static string RequireEnv(string name, string errorMessage)
+    {
+        var value = Environment.GetEnvironmentVariable(name);
+        if (string.IsNullOrWhiteSpace(value))
+            throw new InvalidOperationException(errorMessage);
+
+        return value;
     }
 
     public static IServiceCollection AddRepositories(this IServiceCollection serviceCollection)
