@@ -1,0 +1,14 @@
+﻿root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8-bom
+trim_trailing_whitespace = true
+insert_final_newline = false
+dotnet_diagnostic.WHITESPACE.severity = none
+dotnet_diagnostic.IMPORTS.severity = none
+dotnet_diagnostic.FINALNEWLINE.severity = none
+
+dotnet_sort_system_directives_first = true

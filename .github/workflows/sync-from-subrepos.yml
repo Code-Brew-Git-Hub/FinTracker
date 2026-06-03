@@ -1,5 +1,7 @@
 name: Sync from Backend / Frontend repos
 
+# Manual / scheduled fallback. Primary sync runs in subrepo workflows on push to main.
+
 on:
   workflow_dispatch:
     inputs:
@@ -11,12 +13,8 @@ on:
           - backend
           - frontend
         default: both
-  repository_dispatch:
-    types:
-      - sync-backend
-      - sync-frontend
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 6 * * *'
 
 permissions:
   contents: write
@@ -27,8 +25,8 @@ concurrency:
 
 env:
   BACKEND_REPOSITORY: Code-Brew-Git-Hub/FinTracker.Backend
-  FRONTEND_REPOSITORY: trydov1k/FinTracker.Frontend
-  MONOREPO_BRANCH: Dima's-final-version
+  FRONTEND_REPOSITORY: Code-Brew-Git-Hub/FinTracker.Frontend
+  MONOREPO_BRANCH: "autodeploy"
 
 jobs:
   sync-backend:
@@ -36,8 +34,7 @@ jobs:
     runs-on: ubuntu-24.04
     if: >-
       github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' && (github.event.inputs.target == 'both' || github.event.inputs.target == 'backend') ||
-      github.event_name == 'repository_dispatch' && github.event.action == 'sync-backend'
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.target == 'both' || github.event.inputs.target == 'backend')
 
     steps:
       - name: Checkout monorepo
@@ -53,8 +50,10 @@ jobs:
           token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
           path: subrepo/backend
 
-      - name: Copy backend into monorepo
+      - name: Replace backend folder in monorepo
         run: |
+          rm -rf FinTracker.Backend
+          mkdir -p FinTracker.Backend
           rsync -av --delete \
             --exclude '.git/' \
             --exclude '.github/workflows/sync-to-monorepo.yml' \
@@ -75,15 +74,18 @@ jobs:
             exit 0
           fi
           git commit -m "chore: sync FinTracker.Backend from ${{ env.BACKEND_REPOSITORY }}"
-          git push
+          git pull --rebase origin "${MONOREPO_BRANCH}"
+          git push origin "HEAD:${MONOREPO_BRANCH}"
 
   sync-frontend:
     name: Sync Frontend
+    needs: sync-backend
     runs-on: ubuntu-24.04
     if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' && (github.event.inputs.target == 'both' || github.event.inputs.target == 'frontend') ||
-      github.event_name == 'repository_dispatch' && github.event.action == 'sync-frontend'
+      always() &&
+      (needs.sync-backend.result == 'success' || needs.sync-backend.result == 'skipped') &&
+      (github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.target == 'both' || github.event.inputs.target == 'frontend'))
 
     steps:
       - name: Checkout monorepo
@@ -99,8 +101,10 @@ jobs:
           token: ${{ secrets.MONOREPO_SYNC_TOKEN }}
           path: subrepo/frontend
 
-      - name: Copy frontend into monorepo
+      - name: Replace frontend folder in monorepo
         run: |
+          rm -rf FinTracker.Frontend
+          mkdir -p FinTracker.Frontend
           rsync -av --delete \
             --exclude '.git/' \
             --exclude '.github/workflows/sync-to-monorepo.yml' \
@@ -120,4 +124,5 @@ jobs:
             exit 0
           fi
           git commit -m "chore: sync FinTracker.Frontend from ${{ env.FRONTEND_REPOSITORY }}"
-          git push
+          git pull --rebase origin "${MONOREPO_BRANCH}"
+          git push origin "HEAD:${MONOREPO_BRANCH}"
