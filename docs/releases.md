@@ -42,14 +42,19 @@ docker compose -f docker-compose.images.yml up -d
 
 **Actions → Docker images & Release → Run workflow** — поле `tag` (например `latest` или `v1.0.1-preview`).
 
-### Первый раз: видимость пакетов
+### Первый раз: видимость пакетов (обязательно для `start.bat` без логина)
 
-После первой успешной сборки в организации **Code-Brew-Git-Hub**:
+По умолчанию образы в GHCR **приватные** — у пользователей будет `unauthorized` при `docker pull`.
 
-1. **Packages** → `fintracker-api` / `fintracker-frontend`
-2. **Package settings → Change visibility → Public** (для публичного self-hosted без `docker login`).
+**Maintainer:** после первой сборки сделайте пакеты публичными:
 
-Или привяжите видимость к публичному репозиторию FinTracker (настройки репозитория → Packages).
+1. Откройте https://github.com/orgs/Code-Brew-Git-Hub/packages
+2. Выберите **fintracker-api** → **Package settings** → **Change visibility** → **Public**
+3. То же для **fintracker-frontend**
+
+Либо: репозиторий FinTracker → **Settings** → **Actions** → **General** → **Workflow permissions** и в разделе Packages включить наследование видимости от репозитория (если доступно в организации).
+
+Пока пакеты приватны, пользователи могут запускать **`.\start.ps1 -Build`** или обновлённый `start.ps1` (авто-сборка при `unauthorized`).
 
 ## Теги образов
 

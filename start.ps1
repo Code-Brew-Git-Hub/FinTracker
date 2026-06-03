@@ -77,19 +77,39 @@ if ($Build) {
     Write-Step "Starting with local build"
     docker compose up --build -d
 } else {
+    $useLocalBuild = $false
+
     Write-Step "Pulling images from GHCR"
-    docker compose -f docker-compose.images.yml pull
+    $pullOutput = docker compose -f docker-compose.images.yml pull 2>&1 | Out-String
+    Write-Host $pullOutput
+
     if ($LASTEXITCODE -ne 0) {
-        Write-Error @"
-Failed to pull images. Possible causes:
-  - GHCR packages are private (run: docker login ghcr.io);
-  - no network connection.
-Try building from source: .\start.ps1 -Build
+        if ($pullOutput -match "unauthorized|denied|access forbidden") {
+            Write-Host ""
+            Write-Warning @"
+GHCR images are not publicly accessible (unauthorized).
+Falling back to local build from source (first run may take 5-15 min).
+To use pre-built images later: ask the maintainer to set packages
+fintracker-api and fintracker-frontend to Public on GitHub, or run:
+  docker login ghcr.io
 "@
+            $useLocalBuild = $true
+        } else {
+            Write-Error @"
+Failed to pull images. Check your network connection.
+You can build locally: .\start.ps1 -Build
+"@
+        }
     }
 
-    Write-Step "Starting containers"
-    docker compose -f docker-compose.images.yml up -d
+    if ($useLocalBuild) {
+        Write-Step "Starting with local build (fallback)"
+        docker compose up --build -d
+        $Build = $true
+    } else {
+        Write-Step "Starting containers"
+        docker compose -f docker-compose.images.yml up -d
+    }
 }
 
 if ($LASTEXITCODE -ne 0) {
