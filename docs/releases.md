@@ -11,6 +11,10 @@
 
 ## Запуск для пользователя
 
+**Windows:** `start.bat` (см. также `start.ps1`, остановка — `stop.bat`).
+
+**Вручную:**
+
 ```bash
 cp .env.example .env
 # в .env: FINTRACKER_VERSION=v1.0.0  (или latest)
