@@ -2,4 +2,9 @@
 setlocal
 cd /d "%~dp0"
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0stop.ps1" %*
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Failed to stop FinTracker.
+    pause
+)
 exit /b %ERRORLEVEL%

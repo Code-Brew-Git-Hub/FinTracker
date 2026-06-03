@@ -1,10 +1,10 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Запуск FinTracker через Docker Compose (self-hosted).
+  Start FinTracker via Docker Compose (self-hosted).
 
 .PARAMETER Build
-  Собрать образы из исходников (docker-compose.yml) вместо готовых образов GHCR.
+  Build images from source (docker-compose.yml) instead of GHCR images.
 
 .EXAMPLE
   .\start.ps1
@@ -46,57 +46,57 @@ function Get-FrontendPort {
     return $defaultPort
 }
 
-Write-Step "Проверка Docker"
+Write-Step "Checking Docker"
 if (-not (Test-CommandAvailable "docker")) {
     Write-Error @"
-Docker не найден. Установите Docker Desktop и убедитесь, что Engine запущен:
+Docker was not found. Install Docker Desktop and ensure the engine is running:
 https://www.docker.com/products/docker-desktop/
 "@
 }
 
 $composeVersion = docker compose version 2>&1
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Docker Compose недоступен. Запустите Docker Desktop и повторите."
+    Write-Error "Docker Compose is not available. Start Docker Desktop and try again."
 }
 
 Write-Host $composeVersion
 
 if (-not (Test-Path -LiteralPath ".env")) {
-    Write-Step "Создание .env из .env.example"
+    Write-Step "Creating .env from .env.example"
     if (-not (Test-Path -LiteralPath ".env.example")) {
-        Write-Error "Файл .env.example не найден в $Root"
+        Write-Error ".env.example was not found in $Root"
     }
     Copy-Item -LiteralPath ".env.example" -Destination ".env"
-    Write-Host "Создан .env — при необходимости смените DB_PASSWORD и FINTRACKER_VERSION."
+    Write-Host "Created .env - set DB_PASSWORD and FINTRACKER_VERSION if needed."
 }
 
 $frontendPort = Get-FrontendPort
 $frontendUrl = "http://localhost:$frontendPort"
 
 if ($Build) {
-    Write-Step "Запуск со сборкой из исходников"
+    Write-Step "Starting with local build"
     docker compose up --build -d
 } else {
-    Write-Step "Загрузка готовых образов (GHCR)"
+    Write-Step "Pulling images from GHCR"
     docker compose -f docker-compose.images.yml pull
     if ($LASTEXITCODE -ne 0) {
         Write-Error @"
-Не удалось скачать образы. Возможные причины:
-  - пакеты GHCR ещё не опубликованы или приватны (нужен docker login ghcr.io);
-  - нет сети.
-Попробуйте сборку из исходников: .\start.ps1 -Build
+Failed to pull images. Possible causes:
+  - GHCR packages are private (run: docker login ghcr.io);
+  - no network connection.
+Try building from source: .\start.ps1 -Build
 "@
     }
 
-    Write-Step "Запуск контейнеров"
+    Write-Step "Starting containers"
     docker compose -f docker-compose.images.yml up -d
 }
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Docker Compose завершился с ошибкой."
+    Write-Error "Docker Compose exited with an error."
 }
 
-Write-Step "Статус контейнеров"
+Write-Step "Container status"
 if ($Build) {
     docker compose ps
 } else {
@@ -104,12 +104,12 @@ if ($Build) {
 }
 
 Write-Host ""
-Write-Host "FinTracker запущен." -ForegroundColor Green
+Write-Host "FinTracker is running." -ForegroundColor Green
 Write-Host "  Frontend: $frontendUrl"
 Write-Host "  API:      http://localhost:5009"
 Write-Host "  Swagger:  http://localhost:5009/swagger"
 Write-Host ""
-Write-Host "Остановка: .\stop.ps1  или  docker compose down"
+Write-Host "Stop: .\stop.ps1  or  docker compose down"
 
-Write-Step "Открытие браузера"
+Write-Step "Opening browser"
 Start-Process $frontendUrl
