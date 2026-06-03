@@ -1,0 +1,54 @@
+# Self-hosted: готовые образы из GitHub Container Registry (без локальной сборки).
+# См. docs/docker.md и GitHub Releases.
+#
+#   cp .env.example .env
+#   docker compose -f docker-compose.images.yml pull
+#   docker compose -f docker-compose.images.yml up -d
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-FinTrackerDb}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fintracker}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-FinTrackerDb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: ghcr.io/${GHCR_OWNER:-code-brew-git-hub}/fintracker-api:${FINTRACKER_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-FinTrackerDb}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-fintracker}
+      AllowedOrigins__0: http://localhost:8080
+      AllowedOrigins__1: http://127.0.0.1:8080
+      AllowedOrigins__2: http://localhost:${FRONTEND_PORT:-8080}
+      AllowedOrigins__3: http://localhost:5009
+    ports:
+      - "${API_PORT:-5009}:8080"
+
+  frontend:
+    image: ghcr.io/${GHCR_OWNER:-code-brew-git-hub}/fintracker-frontend:${FINTRACKER_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  postgres_data:
