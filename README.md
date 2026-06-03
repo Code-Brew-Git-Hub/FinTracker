@@ -12,6 +12,18 @@
 
 Нужна подробная инструкция с нуля: [docs/docker-for-beginners.md](docs/docker-for-beginners.md)
 
+### Готовые образы (без сборки, рекомендуется)
+
+```bash
+cp .env.example .env
+docker compose -f docker-compose.images.yml pull
+docker compose -f docker-compose.images.yml up -d
+```
+
+Версию можно зафиксировать в `.env`: `FINTRACKER_VERSION=v1.0.0` (см. [GitHub Releases](https://github.com/Code-Brew-Git-Hub/FinTracker/releases)).
+
+### Сборка из исходников
+
 ```bash
 docker compose up --build
 ```
@@ -26,6 +38,8 @@ docker compose up --build
 
 ```bash
 docker compose down
+# для образов из GHCR:
+docker compose -f docker-compose.images.yml down
 ```
 
 ## Переменные окружения
@@ -40,6 +54,12 @@ cp .env.example .env
 
 - `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 - `API_PORT`, `FRONTEND_PORT`
+- `GHCR_OWNER`, `FINTRACKER_VERSION` — для `docker-compose.images.yml`
+
+## Релизы
+
+- Готовые Docker-образы на GHCR и выпуск версий: [docs/releases.md](docs/releases.md)
+- Список релизов: [GitHub Releases](https://github.com/Code-Brew-Git-Hub/FinTracker/releases)
 
 ## Документация
 

@@ -126,6 +126,19 @@ dir
 
 ## 7) Первый запуск проекта
 
+### Вариант A: готовые образы (быстрее, без сборки)
+
+Подходит, если в [GitHub Releases](https://github.com/Code-Brew-Git-Hub/FinTracker/releases) уже есть опубликованные образы.
+
+```powershell
+docker compose -f docker-compose.images.yml pull
+docker compose -f docker-compose.images.yml up -d
+```
+
+В `.env` можно указать версию, например `FINTRACKER_VERSION=v1.0.0` (иначе используется `latest`).
+
+### Вариант B: сборка из исходников
+
 Выполните:
 
 ```powershell
@@ -136,7 +149,7 @@ docker compose up --build
 
 - первый запуск может занять 5-15 минут
 - в терминале будет много текста - это нормально
-- не закрывайте это окно терминала, пока пользуетесь проектом
+- при варианте B не закрывайте окно терминала, пока пользуетесь проектом (или используйте вариант A с `-d`)
 
 ## 8) Проверка результата
 
@@ -157,7 +170,14 @@ docker compose down
 
 ## 10) Как запустить второй и последующие разы
 
-Обычно хватает:
+С готовыми образами:
+
+```powershell
+docker compose -f docker-compose.images.yml pull
+docker compose -f docker-compose.images.yml up -d
+```
+
+Со сборкой из исходников обычно хватает:
 
 ```powershell
 docker compose up
