@@ -12,6 +12,14 @@
 
 Нужна подробная инструкция с нуля: [docs/docker-for-beginners.md](docs/docker-for-beginners.md)
 
+### Windows: двойной клик или скрипт
+
+```powershell
+.\start.bat          # готовые образы GHCR + открытие браузера
+.\start.ps1 -Build   # сборка из исходников
+.\stop.bat           # остановка
+```
+
 ### Готовые образы (без сборки, рекомендуется)
 
 ```bash
