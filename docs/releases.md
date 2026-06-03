@@ -1,60 +1,125 @@
-# Релизы и Docker-образы (GHCR)
+# Релизы FinTracker
 
-Для self-hosted публикуются готовые образы в [GitHub Container Registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry):
+FinTracker выпускается **версиями** (например v0.0.3). Каждая версия — это готовая сборка программы для установки у себя на компьютере.
 
-| Образ | Назначение |
-|-------|------------|
-| `ghcr.io/<owner>/fintracker-api` | ASP.NET Core API |
-| `ghcr.io/<owner>/fintracker-frontend` | nginx + статика |
+---
 
-`<owner>` — владелец репозитория в **нижнем регистре** (например `code-brew-git-hub`).
+## Для пользователей
 
-## Запуск для пользователя
+### Где скачать
 
-**Windows:** `start.bat` (см. также `start.ps1`, остановка — `stop.bat`).
+[github.com/Code-Brew-Git-Hub/FinTracker/releases](https://github.com/Code-Brew-Git-Hub/FinTracker/releases)
 
-**Вручную:**
+На странице релиза:
+
+1. Прочитайте описание версии
+2. В блоке **Assets** скачайте **Source code (zip)**
+3. Распакуйте архив
+4. Запустите **`start.bat`** (см. [docker-for-beginners.md](docker-for-beginners.md))
+
+### Как указать версию
+
+Откройте файл `.env` в папке FinTracker блокнотом и найдите строку:
+
+```
+FINTRACKER_VERSION=latest
+```
+
+Замените на номер скачанного релиза:
+
+```
+FINTRACKER_VERSION=v0.0.3
+```
+
+| Значение | Когда использовать |
+|----------|-------------------|
+| `v0.0.3` | Конкретная версия — **рекомендуется** |
+| `latest` | Всегда последняя сборка (может измениться без предупреждения) |
+
+### Запуск после скачивания
+
+**Windows:**
+
+```
+start.bat
+```
+
+**Вручную (если нужно):**
 
 ```bash
 cp .env.example .env
-# в .env: FINTRACKER_VERSION=v1.0.0  (или latest)
 docker compose -f docker-compose.images.yml pull
 docker compose -f docker-compose.images.yml up -d
 ```
 
-Сборка из исходников (как раньше): `docker compose up --build`.
+### Обновление
 
-## Как выпустить релиз (maintainer)
+1. Скачайте новый релиз
+2. Скопируйте старый `.env` в новую папку (сохранятся пароль и порты)
+3. Обновите `FINTRACKER_VERSION` в `.env`
+4. Запустите **`start.bat`**
 
-1. Убедитесь, что workflow [`.github/workflows/docker-release.yml`](../.github/workflows/docker-release.yml) есть в ветке по умолчанию.
-2. Создайте и запушьте тег SemVer:
+### Если скачивание не работает (`unauthorized`)
 
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
+Образы на GitHub могут быть недоступны без входа. Запустите сборку на своём ПК:
 
-3. GitHub Actions соберёт образы с тегами `v1.0.0` и `latest`, создаст [GitHub Release](https://github.com/Code-Brew-Git-Hub/FinTracker/releases) с инструкцией.
+```powershell
+.\start.ps1 -Build
+```
 
-При push в `main` или `autodeploy` обновляется только тег образа `latest` (без GitHub Release).
+---
 
-### Ручной запуск workflow
+## Что входит в релиз
 
-**Actions → Docker images & Release → Run workflow** — поле `tag` (например `latest` или `v1.0.1-preview`).
+| Компонент | Где хранится | Скачивается |
+|-----------|--------------|-------------|
+| Сайт и сервер FinTracker | GitHub (образы GHCR) | При `start.bat` или `pull` |
+| База PostgreSQL | Docker Hub | Автоматически при первом запуске |
+| Ваши данные | На вашем диске (volume Docker) | Не входят в релиз — остаются у вас |
 
-### Первый раз: видимость пакетов
+---
 
-После первой успешной сборки в организации **Code-Brew-Git-Hub**:
+## Для maintainer (разработчиков)
 
-1. **Packages** → `fintracker-api` / `fintracker-frontend`
-2. **Package settings → Change visibility → Public** (для публичного self-hosted без `docker login`).
+### Как выпустить новую версию
 
-Или привяжите видимость к публичному репозиторию FinTracker (настройки репозитория → Packages).
+1. Убедитесь, что workflow [`.github/workflows/docker-release.yml`](../.github/workflows/docker-release.yml) есть в `main`
+2. Создайте и запушьте тег:
 
-## Теги образов
+```bash
+git tag v0.0.4
+git push origin v0.0.4
+```
 
-| Событие | Теги на GHCR |
-|---------|----------------|
+3. GitHub Actions соберёт образы и создаст страницу релиза
+
+При push в `main` / `autodeploy` обновляется только тег `latest` (без новой страницы релиза).
+
+### Ручной запуск сборки
+
+**Actions → Docker images & Release → Run workflow** — поле `tag` (например `latest`).
+
+### Обязательно: публичные пакеты на GitHub
+
+По умолчанию образы **приватные** — у пользователей будет ошибка `unauthorized`.
+
+После первой сборки:
+
+1. [github.com/orgs/Code-Brew-Git-Hub/packages](https://github.com/orgs/Code-Brew-Git-Hub/packages)
+2. **fintracker-api** → Package settings → **Change visibility** → **Public**
+3. То же для **fintracker-frontend**
+
+### Имена образов
+
+| Образ | Назначение |
+|-------|------------|
+| `ghcr.io/code-brew-git-hub/fintracker-api` | Сервер (API) |
+| `ghcr.io/code-brew-git-hub/fintracker-frontend` | Сайт |
+
+### Теги образов
+
+| Событие | Теги |
+|---------|------|
 | Push в `main` / `autodeploy` | `latest` |
-| Push тега `v*` | `v1.0.0`, `latest` |
-| `workflow_dispatch` | значение из поля `tag` |
+| Push тега `v*` | `v0.0.3`, `latest` |
+| Ручной workflow | значение из поля `tag` |

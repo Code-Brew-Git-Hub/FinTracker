@@ -1,87 +1,120 @@
 # FinTracker
 
-Сервис для сбора и агрегирования финансовых трат 
+**FinTracker** — программа для учёта и анализа личных финансов. Вы загружаете выписки, просматриваете транзакции и смотрите аналитику по категориям, тегам и периодам.
 
-## Что внутри
+> **Важно:** FinTracker работает **только на вашем компьютере**. Данные хранятся у вас, в отдельной базе на вашем ПК. Для входа в программу пароль не нужен — не открывайте её в интернет без защиты.
 
-- `FinTracker.Backend` — ASP.NET Core API + PostgreSQL
-- `FinTracker.Frontend` — клиентская часть (HTML/CSS/JavaScript)
-- `docs` — документация по запуску и аналитике
+---
 
-## Быстрый старт (Docker Compose)
+## Быстрый старт (Windows, 3 шага)
 
-Нужна подробная инструкция с нуля: [docs/docker-for-beginners.md](docs/docker-for-beginners.md)
+### Шаг 1. Установите Docker Desktop
 
-### Windows: двойной клик или скрипт
+1. Скачайте: [Docker Desktop для Windows](https://www.docker.com/products/docker-desktop/)
+2. Установите и перезагрузите компьютер, если программа попросит.
+3. Запустите Docker Desktop и дождитесь статуса **Engine running** (внизу окна).
 
-```powershell
-.\start.bat          # готовые образы GHCR + открытие браузера
-.\start.ps1 -Build   # сборка из исходников
-.\stop.bat           # остановка
-```
+### Шаг 2. Скачайте FinTracker
 
-### Готовые образы (без сборки, рекомендуется)
+Самый простой способ — **архив релиза** (не нужен Git):
 
-```bash
-cp .env.example .env
-docker compose -f docker-compose.images.yml pull
-docker compose -f docker-compose.images.yml up -d
-```
+1. Откройте [страницу релизов](https://github.com/Code-Brew-Git-Hub/FinTracker/releases).
+2. Выберите последнюю версию (например **v0.0.3**).
+3. В разделе **Assets** скачайте **Source code (zip)**.
+4. Распакуйте архив в `C:\FinTracker-0.0.3` (номер версии — как в скачанном релизе).
 
-Версию можно зафиксировать в `.env`: `FINTRACKER_VERSION=v1.0.0` (см. [GitHub Releases](https://github.com/Code-Brew-Git-Hub/FinTracker/releases)).
+### Шаг 3. Запустите
 
-### Сборка из исходников
+1. Откройте папку с FinTracker.
+2. Дважды щёлкните **`start.bat`**.
 
-```bash
-docker compose up --build
-```
+Скрипт сам создаст файл настроек `.env`, запустит программу и откроет сайт в браузере:
 
-После запуска:
+**http://localhost:8080**
 
-- Frontend: [http://localhost:8080](http://localhost:8080)
-- API: [http://localhost:5009](http://localhost:5009)
-- Swagger: [http://localhost:5009/swagger](http://localhost:5009/swagger)
+Первый запуск может занять **5–15 минут** — это нормально.
 
-Остановка:
+---
 
-```bash
-docker compose down
-# для образов из GHCR:
-docker compose -f docker-compose.images.yml down
-```
+## Каждый день: запуск и остановка
 
-## Переменные окружения
+| Действие | Что делать |
+|----------|------------|
+| **Запустить** | Docker Desktop должен быть включён → двойной щелчок **`start.bat`** |
+| **Остановить** | Двойной щелчок **`stop.bat`** |
+| **Снова открыть сайт** | http://localhost:8080 |
 
-Можно создать локальный `.env` на основе шаблона:
+Данные (транзакции, категории) **не удаляются** при остановке.
 
-```bash
-cp .env.example .env
-```
+---
 
-Основные переменные:
+## Обновление на новую версию
 
-- `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-- `API_PORT`, `FRONTEND_PORT`
-- `GHCR_OWNER`, `FINTRACKER_VERSION` — для `docker-compose.images.yml`
+1. Скачайте новый релиз с [GitHub Releases](https://github.com/Code-Brew-Git-Hub/FinTracker/releases).
+2. Распакуйте в новую папку (или замените файлы, **кроме** `.env` — там ваши настройки).
+3. В файле `.env` укажите версию, например: `FINTRACKER_VERSION=v0.0.3`
+4. Запустите **`start.bat`**.
 
-## Релизы
+Подробнее: [docs/releases.md](docs/releases.md)
 
-- Готовые Docker-образы на GHCR и выпуск версий: [docs/releases.md](docs/releases.md)
-- Список релизов: [GitHub Releases](https://github.com/Code-Brew-Git-Hub/FinTracker/releases)
+---
+
+## Если что-то пошло не так
+
+| Проблема | Решение |
+|----------|---------|
+| **`start.bat` сразу закрывается или пишет ошибку** | Убедитесь, что Docker Desktop запущен. Запустите **`start.bat`** ещё раз и прочитайте текст в окне. |
+| **`unauthorized` при скачивании образов** | Запустите в PowerShell: `.\start.ps1 -Build` (сборка на вашем ПК, без скачивания с GitHub). |
+| **Сайт не открывается** | Подождите 1–2 минуты после запуска. Проверьте http://localhost:8080 вручную. |
+| **Порт 8080 занят** | Откройте `.env`, измените `FRONTEND_PORT=8081`, сохраните, запустите **`start.bat`** снова. Открывайте http://localhost:8081 |
+| **Нужно всё сбросить и начать заново** | См. раздел «Полный сброс» в [docs/docker-for-beginners.md](docs/docker-for-beginners.md) |
+
+Пошаговая инструкция с картинками действий: **[docs/docker-for-beginners.md](docs/docker-for-beginners.md)**
+
+---
+
+## Настройки (файл `.env`)
+
+Файл `.env` лежит в папке FinTracker. Создаётся автоматически при первом запуске. Основные параметры:
+
+| Параметр | Зачем нужен | Пример |
+|----------|-------------|--------|
+| `DB_PASSWORD` | Пароль вашей локальной базы данных | Придумайте свой надёжный пароль |
+| `FRONTEND_PORT` | Порт сайта в браузере | `8080` |
+| `API_PORT` | Порт API (обычно менять не нужно) | `5009` |
+| `FINTRACKER_VERSION` | Версия программы из релиза | `v0.0.3` или `latest` |
+
+Шаблон: [.env.example](.env.example)
+
+---
+
+## Что внутри проекта (для любопытных)
+
+| Папка / файл | Назначение |
+|--------------|------------|
+| `start.bat`, `stop.bat` | Запуск и остановка одним щелчком |
+| `FinTracker.Frontend` | Интерфейс (страницы в браузере) |
+| `FinTracker.Backend` | Серверная часть и логика |
+| `docs` | Документация |
+
+База данных **PostgreSQL** скачивается отдельно при первом запуске — она не «внутри» программы, а работает рядом в Docker.
+
+---
 
 ## Документация
 
-- Подробный запуск для начинающих: [docs/docker-for-beginners.md](docs/docker-for-beginners.md)
-- Запуск в Docker: [docs/docker.md](docs/docker.md)
-- Синхронизация субрепозиториев: [docs/sync-subrepos.md](docs/sync-subrepos.md)
-- Аналитика (папка): [docs/analitics](docs/analitics)
-- Требования заказчика: [docs/analitics/Требования заказчика.md](docs/analitics/Требования%20заказчика.md)
-- Общая аналитика: [docs/analitics/analytic.md](docs/analitics/analytic.md)
-- Модуль агрегации: [docs/analitics/agregation_module.md](docs/analitics/agregation_module.md)
-- Валидация транзакций: [docs/analitics/analytic_transaction_validation.md](docs/analitics/analytic_transaction_validation.md)
-- Переводы между счетами: [docs/analitics/analytic_transfers_between_accounts.md](docs/analitics/analytic_transfers_between_accounts.md)
-- Компенсации: [docs/analitics/analytic_compensations.md](docs/analitics/analytic_compensations.md)
-- Позиции (массив): [docs/analitics/analytic_positions_array.md](docs/analitics/analytic_positions_array.md)
+### Для пользователей
+
+- [Запуск с нуля (подробно)](docs/docker-for-beginners.md) — пошагово, без опыта программирования
+- [Релизы и версии](docs/releases.md) — как выбрать и обновить версию
+- [Справка по Docker](docs/docker.md) — если нужны команды вручную
+
+### Для разработчиков
+
+- [Синхронизация субрепозиториев](docs/sync-subrepos.md)
+- [Аналитика](docs/analitics) — описание модулей и требований
+
+---
 
 ## Команда
 
