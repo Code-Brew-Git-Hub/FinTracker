@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Остановка FinTracker (Docker Compose).
+  Stop FinTracker (Docker Compose).
 #>
 [CmdletBinding()]
 param()
@@ -9,7 +9,7 @@ param()
 $ErrorActionPreference = "Stop"
 Set-Location -LiteralPath $PSScriptRoot
 
-Write-Host ">> Остановка FinTracker" -ForegroundColor Cyan
+Write-Host ">> Stopping FinTracker" -ForegroundColor Cyan
 
 if (Test-Path -LiteralPath "docker-compose.images.yml") {
     docker compose -f docker-compose.images.yml down 2>$null
@@ -17,5 +17,5 @@ if (Test-Path -LiteralPath "docker-compose.images.yml") {
 
 docker compose down 2>$null
 
-Write-Host "Готово. Данные PostgreSQL сохранены (volume postgres_data)." -ForegroundColor Green
-Write-Host "Полный сброс БД: docker compose -f docker-compose.images.yml down -v"
+Write-Host "Done. PostgreSQL data is kept (volume postgres_data)." -ForegroundColor Green
+Write-Host "Full DB reset: docker compose -f docker-compose.images.yml down -v"
