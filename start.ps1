@@ -29,6 +29,31 @@ function Test-CommandAvailable([string]$Name) {
     $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+function Invoke-NativeCommand {
+    param(
+        [Parameter(Mandatory)][string]$FilePath,
+        [string[]]$ArgumentList
+    )
+
+    $previousErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $output = & $FilePath @ArgumentList 2>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $_.ToString()
+            } else {
+                $_
+            }
+        }
+        return [pscustomobject]@{
+            Output   = ($output | Out-String).Trim()
+            ExitCode = $LASTEXITCODE
+        }
+    } finally {
+        $ErrorActionPreference = $previousErrorAction
+    }
+}
+
 function Get-FrontendPort {
     $defaultPort = 8080
     if (-not (Test-Path -LiteralPath ".env")) {
@@ -54,12 +79,12 @@ https://www.docker.com/products/docker-desktop/
 "@
 }
 
-$composeVersion = docker compose version 2>&1
-if ($LASTEXITCODE -ne 0) {
+$composeCheck = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "version")
+if ($composeCheck.ExitCode -ne 0) {
     Write-Error "Docker Compose is not available. Start Docker Desktop and try again."
 }
 
-Write-Host $composeVersion
+Write-Host $composeCheck.Output
 
 if (-not (Test-Path -LiteralPath ".env")) {
     Write-Step "Creating .env from .env.example"
@@ -75,16 +100,23 @@ $frontendUrl = "http://localhost:$frontendPort"
 
 if ($Build) {
     Write-Step "Starting with local build"
-    docker compose up --build -d
+    $upResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "up", "--build", "-d")
+    if ($upResult.Output) {
+        Write-Host $upResult.Output
+    }
 } else {
     $useLocalBuild = $false
 
     Write-Step "Pulling images from GHCR"
-    $pullOutput = docker compose -f docker-compose.images.yml pull 2>&1 | Out-String
-    Write-Host $pullOutput
+    $pullResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @(
+        "compose", "-f", "docker-compose.images.yml", "pull"
+    )
+    if ($pullResult.Output) {
+        Write-Host $pullResult.Output
+    }
 
-    if ($LASTEXITCODE -ne 0) {
-        if ($pullOutput -match "unauthorized|denied|access forbidden") {
+    if ($pullResult.ExitCode -ne 0) {
+        if ($pullResult.Output -match "unauthorized|denied|access forbidden") {
             Write-Host ""
             Write-Warning @"
 GHCR images are not publicly accessible (unauthorized).
@@ -104,23 +136,36 @@ You can build locally: .\start.ps1 -Build
 
     if ($useLocalBuild) {
         Write-Step "Starting with local build (fallback)"
-        docker compose up --build -d
+        $upResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "up", "--build", "-d")
+        if ($upResult.Output) {
+            Write-Host $upResult.Output
+        }
         $Build = $true
     } else {
         Write-Step "Starting containers"
-        docker compose -f docker-compose.images.yml up -d
+        $upResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @(
+            "compose", "-f", "docker-compose.images.yml", "up", "-d"
+        )
+        if ($upResult.Output) {
+            Write-Host $upResult.Output
+        }
     }
 }
 
-if ($LASTEXITCODE -ne 0) {
+if ($upResult.ExitCode -ne 0) {
     Write-Error "Docker Compose exited with an error."
 }
 
 Write-Step "Container status"
 if ($Build) {
-    docker compose ps
+    $psResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "ps")
 } else {
-    docker compose -f docker-compose.images.yml ps
+    $psResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @(
+        "compose", "-f", "docker-compose.images.yml", "ps"
+    )
+}
+if ($psResult.Output) {
+    Write-Host $psResult.Output
 }
 
 Write-Host ""
