@@ -29,28 +29,25 @@ function Test-CommandAvailable([string]$Name) {
     $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
-function Invoke-NativeCommand {
-    param(
-        [Parameter(Mandatory)][string]$FilePath,
-        [string[]]$ArgumentList
-    )
-
-    $previousErrorAction = $ErrorActionPreference
+# Docker writes progress to stderr; capture exit code before formatting pipeline resets it.
+function Invoke-NativeCommand([scriptblock]$Command) {
+    $prevEAP = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
-        $output = & $FilePath @ArgumentList 2>&1 | ForEach-Object {
-            if ($_ -is [System.Management.Automation.ErrorRecord]) {
-                $_.ToString()
-            } else {
-                $_
-            }
+        $rawOutput = & $Command 2>&1
+        $exitCode = $LASTEXITCODE
+        if ($null -eq $exitCode -or $exitCode -eq "") {
+            $exitCode = if ($?) { 0 } else { 1 }
         }
-        return [pscustomobject]@{
-            Output   = ($output | Out-String).Trim()
-            ExitCode = $LASTEXITCODE
+        $output = $rawOutput | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) { $_.ToString() } else { $_ }
+        } | Out-String
+        [PSCustomObject]@{
+            Output   = $output
+            ExitCode = [int]$exitCode
         }
     } finally {
-        $ErrorActionPreference = $previousErrorAction
+        $ErrorActionPreference = $prevEAP
     }
 }
 
@@ -79,12 +76,12 @@ https://www.docker.com/products/docker-desktop/
 "@
 }
 
-$composeCheck = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "version")
-if ($composeCheck.ExitCode -ne 0) {
+$composeVersion = Invoke-NativeCommand { docker compose version }
+if ($composeVersion.ExitCode -ne 0) {
     Write-Error "Docker Compose is not available. Start Docker Desktop and try again."
 }
 
-Write-Host $composeCheck.Output
+Write-Host $composeVersion.Output
 
 if (-not (Test-Path -LiteralPath ".env")) {
     Write-Step "Creating .env from .env.example"
@@ -98,75 +95,65 @@ if (-not (Test-Path -LiteralPath ".env")) {
 $frontendPort = Get-FrontendPort
 $frontendUrl = "http://localhost:$frontendPort"
 
+$composeExitCode = 0
+
 if ($Build) {
     Write-Step "Starting with local build"
-    $upResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "up", "--build", "-d")
-    if ($upResult.Output) {
-        Write-Host $upResult.Output
-    }
+    $upResult = Invoke-NativeCommand { docker compose up --build -d }
+    Write-Host $upResult.Output
+    $composeExitCode = $upResult.ExitCode
 } else {
     $useLocalBuild = $false
 
     Write-Step "Pulling images from GHCR"
-    $pullResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @(
-        "compose", "-f", "docker-compose.images.yml", "pull"
-    )
-    if ($pullResult.Output) {
-        Write-Host $pullResult.Output
-    }
+    $pullResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml pull }
+    Write-Host $pullResult.Output
 
     if ($pullResult.ExitCode -ne 0) {
+        Write-Host ""
+        $ghcrHint = ""
         if ($pullResult.Output -match "unauthorized|denied|access forbidden") {
-            Write-Host ""
-            Write-Warning @"
-GHCR images are not publicly accessible (unauthorized).
-Falling back to local build from source (first run may take 5-15 min).
-To use pre-built images later: ask the maintainer to set packages
-fintracker-api and fintracker-frontend to Public on GitHub, or run:
-  docker login ghcr.io
-"@
-            $useLocalBuild = $true
-        } else {
-            Write-Error @"
-Failed to pull images. Check your network connection.
-You can build locally: .\start.ps1 -Build
+            $ghcrHint = @"
+
+GHCR images may be private. Make packages fintracker-api and fintracker-frontend
+Public on GitHub, or run: docker login ghcr.io
 "@
         }
+        Write-Warning @"
+Could not pull pre-built images from GHCR (exit $($pullResult.ExitCode)):
+
+$($pullResult.Output.Trim())
+$ghcrHint
+Falling back to local build from source (first run may take 5-15 min).
+"@
+        $useLocalBuild = $true
     }
 
     if ($useLocalBuild) {
         Write-Step "Starting with local build (fallback)"
-        $upResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "up", "--build", "-d")
-        if ($upResult.Output) {
-            Write-Host $upResult.Output
-        }
+        $upResult = Invoke-NativeCommand { docker compose up --build -d }
+        Write-Host $upResult.Output
+        $composeExitCode = $upResult.ExitCode
         $Build = $true
     } else {
         Write-Step "Starting containers"
-        $upResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @(
-            "compose", "-f", "docker-compose.images.yml", "up", "-d"
-        )
-        if ($upResult.Output) {
-            Write-Host $upResult.Output
-        }
+        $upResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml up -d }
+        Write-Host $upResult.Output
+        $composeExitCode = $upResult.ExitCode
     }
 }
 
-if ($upResult.ExitCode -ne 0) {
+if ($composeExitCode -ne 0) {
     Write-Error "Docker Compose exited with an error."
 }
 
 Write-Step "Container status"
 if ($Build) {
-    $psResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @("compose", "ps")
+    $psResult = Invoke-NativeCommand { docker compose ps }
 } else {
-    $psResult = Invoke-NativeCommand -FilePath "docker" -ArgumentList @(
-        "compose", "-f", "docker-compose.images.yml", "ps"
-    )
+    $psResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml ps }
 }
-if ($psResult.Output) {
-    Write-Host $psResult.Output
-}
+Write-Host $psResult.Output
 
 Write-Host ""
 Write-Host "FinTracker is running." -ForegroundColor Green
