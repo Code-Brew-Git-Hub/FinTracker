@@ -144,8 +144,14 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
                                       .Any(tt => filter.TagIds.Contains(tt.TagId)));
 
         if (!string.IsNullOrEmpty(filter.Search))
-            query = query.Where(t => t.Description != null &&
-                                     t.Description.Contains(filter.Search));  // Подумать что еще сюда добавить
+        {
+            var search = filter.Search;
+            query = query.Where(t =>
+                (t.Description != null && t.Description.Contains(search)) ||
+                (t.Comment != null && t.Comment.Contains(search)) ||
+                t.Category.Name.Contains(search) ||
+                t.TransactionTags.Any(tt => tt.Tag.Name.Contains(search)));
+        }
 
         if (!includeDeleted)
             query = query.Where(t => !t.IsDeleted);
