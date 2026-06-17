@@ -7,62 +7,74 @@ namespace FinTracker.Parser;
 
 public class CsvParser
 {
-    private static readonly string TBankHeaders = "\"Дата операции\";\"Дата платежа\";\"Номер карты\";\"Статус\";\"Сумма операции\";\"Валюта операции\";\"Сумма платежа\";\"Валюта платежа\";\"Кэшбэк\";\"Категория\";\"MCC\";\"Описание\";\"Бонусы (включая кэшбэк)\";\"Округление на инвесткопилку\";\"Сумма операции с округлением\"";
-    private static readonly string AlfaBankHeaders = "operationDate,transactionDate,accountName,accountNumber,cardName,cardNumber,merchant,amount,currency,status,category,mcc,type,comment,bonusValue,bonusTitle";
+    private static readonly string[] DelimiterCandidates = [";", ",", "\t"];
 
-    private static readonly CsvConfiguration TBankConfig = new CsvConfiguration(CultureInfo.GetCultureInfo("ru-RU"))
+    public async Task<CsvFileStructure> ReadFileStructureAsync(StreamReader reader)
     {
-        HasHeaderRecord = true,
-        IgnoreBlankLines = true,
-        TrimOptions = TrimOptions.Trim,
-        MissingFieldFound = null,
-        Delimiter = ";"
-    };
-
-    private static readonly CsvConfiguration AlfaBankConfig = new CsvConfiguration(CultureInfo.GetCultureInfo("ru-RU"))
-    {
-        HasHeaderRecord = true,
-        IgnoreBlankLines = true,
-        TrimOptions = TrimOptions.Trim,
-        MissingFieldFound = null,
-        Delimiter = ","
-    };
-
-    public async Task<ParseResult> ParseCSV(StreamReader reader)
-    {
-        var baseStream = reader.BaseStream;
-        bool canSeek = baseStream.CanSeek;
-        long originalPosition = canSeek ? baseStream.Position : 0;
-
-        var firstLine = await reader.ReadLineAsync();
-
-        if (firstLine == TBankHeaders)
+        var (buffered, dispose) = await PrepareReaderAsync(reader);
+        try
         {
-            if (canSeek) baseStream.Position = originalPosition;
-            reader.DiscardBufferedData();
-            return await ParseWithMap<TBankCsvMap>(new CsvReader(reader, TBankConfig));
-        }
-        else if (firstLine == AlfaBankHeaders)
-        {
-            if (canSeek) baseStream.Position = originalPosition;
-            reader.DiscardBufferedData();
-            return await ParseWithMap<AlfaBankCsvMap>(new CsvReader(reader, AlfaBankConfig));
-        }
-        else
-        {
-            return new ParseResult() { Errors = new() { new ParseError() { Reason = "Не удалось распознать заголовки файла" } } };
-        }
+            var firstLine = await buffered.ReadLineAsync();
 
+            if (string.IsNullOrWhiteSpace(firstLine))
+                throw new ArgumentException("Файл пустой или не содержит заголовков");
+
+            var delimiter = DetectDelimiter(firstLine);
+            var config = CreateConfiguration(delimiter, "ru-RU", hasHeaderRecord: true);
+            var headers = await ReadHeadersAsync(buffered, config);
+
+            return new CsvFileStructure
+            {
+                Headers = headers,
+                DetectedDelimiter = delimiter
+            };
+        }
+        finally
+        {
+            if (dispose)
+                buffered.Dispose();
+        }
     }
 
-    private async Task<ParseResult> ParseWithMap<TMap>(CsvReader csvReader)
-        where TMap : ClassMap
+    public async Task<ParseResult> ParseAsync(StreamReader reader, CsvParseOptions options)
     {
-        csvReader.Context.RegisterClassMap<TMap>();
+        var (buffered, dispose) = await PrepareReaderAsync(reader);
+        try
+        {
+            var config = CreateConfiguration(options.Delimiter, options.Culture, options.HasHeaderRecord);
+            string[] headers = [];
 
+            if (options.HasHeaderRecord)
+            {
+                headers = await ReadHeadersAsync(buffered, config);
+                CsvMappingValidator.Validate(headers, options.ColumnMapping);
+            }
+
+            ResetReader(buffered);
+
+            using var csvReader = new CsvReader(buffered, config);
+            csvReader.Context.RegisterClassMap(new DynamicCsvMap(options.ColumnMapping, options));
+
+            if (options.HasHeaderRecord)
+            {
+                await csvReader.ReadAsync();
+                csvReader.ReadHeader();
+            }
+
+            return await ParseRowsAsync(csvReader, options, dataStartRow: options.HasHeaderRecord ? 2 : 1);
+        }
+        finally
+        {
+            if (dispose)
+                buffered.Dispose();
+        }
+    }
+
+    private async Task<ParseResult> ParseRowsAsync(CsvReader csvReader, CsvParseOptions options, int dataStartRow)
+    {
         var transactions = new List<ParsedTransaction>();
         var result = new ParseResult();
-        var row = 1;
+        var row = dataStartRow - 1;
 
         while (await csvReader.ReadAsync())
         {
@@ -71,9 +83,14 @@ public class CsvParser
             {
                 var transaction = csvReader.GetRecord<ParsedTransaction>();
 
-                Normalize(transaction);
+                var normalizationError = Normalize(transaction, options);
+                if (normalizationError != null)
+                {
+                    result.Errors.Add(new ParseError { Row = row, Reason = normalizationError });
+                    continue;
+                }
 
-                var validationError = Validate(transaction, row);
+                var validationError = Validate(transaction, row, options);
                 if (validationError != null)
                 {
                     result.Errors.Add(validationError);
@@ -89,17 +106,41 @@ public class CsvParser
         }
 
         result.Transactions = transactions;
-
         return result;
     }
 
-    private void Normalize(ParsedTransaction t)
+    private static string? Normalize(ParsedTransaction t, CsvParseOptions options)
     {
         if (string.IsNullOrWhiteSpace(t.Description))
             t.Description = null;
+
+        var typeMapping = options.ColumnMapping.Type;
+        if (typeMapping == null)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(t.TypeRaw))
+            return "Тип транзакции не указан";
+
+        var raw = t.TypeRaw.Trim();
+        if (MatchesAny(raw, typeMapping.IncomeValues))
+        {
+            t.Amount = Math.Abs(t.Amount);
+            return null;
+        }
+
+        if (MatchesAny(raw, typeMapping.ExpenseValues))
+        {
+            t.Amount = -Math.Abs(t.Amount);
+            return null;
+        }
+
+        return $"Неизвестный тип транзакции: {t.TypeRaw}";
     }
 
-    private ParseError? Validate(ParsedTransaction t, int row)
+    private static bool MatchesAny(string raw, IEnumerable<string> values) =>
+        values.Any(v => raw.Equals(v, StringComparison.OrdinalIgnoreCase));
+
+    private ParseError? Validate(ParsedTransaction t, int row, CsvParseOptions options)
     {
         if (string.IsNullOrWhiteSpace(t.CategoryName))
             return new ParseError { Row = row, Reason = "Категория не указана" };
@@ -115,29 +156,80 @@ public class CsvParser
         return null;
     }
 
-    public sealed class TBankCsvMap : ClassMap<ParsedTransaction>
+    private static string DetectDelimiter(string headerLine)
     {
-        public TBankCsvMap()
+        var best = ";";
+        var maxColumns = 0;
+
+        foreach (var delimiter in DelimiterCandidates)
         {
-            Map(t => t.Date).Index(0);
-            Map(t => t.Amount).Index(4);
-            Map(t => t.Currency).Index(5);
-            Map(t => t.CategoryName).Index(9);
-            Map(t => t.Description).Index(11);
+            var count = headerLine.Split(delimiter).Length;
+            if (count > maxColumns)
+            {
+                maxColumns = count;
+                best = delimiter;
+            }
         }
+
+        return best;
     }
 
-    public sealed class AlfaBankCsvMap : ClassMap<ParsedTransaction>
+    private static async Task<string[]> ReadHeadersAsync(StreamReader reader, CsvConfiguration config)
     {
-        public AlfaBankCsvMap()
+        ResetReader(reader);
+
+        using var csv = new CsvReader(reader, config);
+        await csv.ReadAsync();
+        csv.ReadHeader();
+
+        return NormalizeHeaders(csv.HeaderRecord ?? []);
+    }
+
+    private static string[] NormalizeHeaders(string[] headers)
+    {
+        if (headers.Length == 0)
+            return headers;
+
+        var normalized = new string[headers.Length];
+        for (var i = 0; i < headers.Length; i++)
         {
-            Map(t => t.Date).Index(0)
-                .TypeConverterOption.Format("dd.MM.yyyy");
-            Map(t => t.Amount).Index(7)
-                .TypeConverterOption.NumberStyles(NumberStyles.Any)
-                .TypeConverterOption.CultureInfo(CultureInfo.InvariantCulture);
-            Map(t => t.Currency).Index(8);
-            Map(t => t.CategoryName).Index(10);
+            var value = headers[i]?.Trim() ?? string.Empty;
+            if (i == 0)
+                value = value.TrimStart('\ufeff');
+
+            normalized[i] = value;
         }
+
+        return normalized;
+    }
+
+    private static CsvConfiguration CreateConfiguration(string delimiter, string culture, bool hasHeaderRecord) =>
+        new(CultureInfo.GetCultureInfo(culture))
+        {
+            HasHeaderRecord = hasHeaderRecord,
+            IgnoreBlankLines = true,
+            TrimOptions = TrimOptions.Trim,
+            MissingFieldFound = null,
+            Delimiter = delimiter
+        };
+
+    private static void ResetReader(StreamReader reader)
+    {
+        reader.BaseStream.Position = 0;
+        reader.DiscardBufferedData();
+    }
+
+    private static async Task<(StreamReader Reader, bool ShouldDispose)> PrepareReaderAsync(StreamReader reader)
+    {
+        if (reader.BaseStream.CanSeek)
+        {
+            ResetReader(reader);
+            return (reader, false);
+        }
+
+        var memoryStream = new MemoryStream();
+        await reader.BaseStream.CopyToAsync(memoryStream);
+        memoryStream.Position = 0;
+        return (new StreamReader(memoryStream), true);
     }
 }

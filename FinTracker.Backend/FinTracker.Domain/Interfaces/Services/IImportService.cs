@@ -4,5 +4,7 @@ namespace FinTracker.Domain.Interfaces.Services;
 
 public interface IImportService
 {
-    Task<ImportResultDto> ImportAsync(StreamReader reader, string filename);
+    Task<CsvPreviewDto> PreviewAsync(StreamReader reader, string filename);
+    Task<ImportResultDto> ImportAsync(StreamReader reader, string filename, Guid presetId);
+    Task<ImportResultDto> ImportAsync(StreamReader reader, string filename, CsvParseOptionsDto options);
 }

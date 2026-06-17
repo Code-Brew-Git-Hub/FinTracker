@@ -7,4 +7,5 @@ public class ParsedTransaction
     public string Currency { get; set; }
     public string CategoryName { get; set; }
     public string? Description { get; set; }
+    public string? TypeRaw { get; set; }
 }

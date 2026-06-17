@@ -2,6 +2,132 @@
 
 // Тестирование запросов
 
+// ImportPresetsController — list presets
+GET {{FinTracker.API_HostAddress}}/api/import/presets
+Accept: application/json
+
+###
+
+// ImportPresetsController — get preset with full mapping
+GET {{FinTracker.API_HostAddress}}/api/import/presets/a1b2c3d4-e5f6-4789-a012-3456789abcde
+Accept: application/json
+
+###
+
+// ImportPresetsController — create preset
+POST {{FinTracker.API_HostAddress}}/api/import/presets
+Content-Type: application/json
+
+{
+  "name": "My Bank",
+  "matchHeaders": ["Дата", "Сумма", "Валюта", "Категория", "Описание"],
+  "parseOptions": {
+    "delimiter": ";",
+    "culture": "ru-RU",
+    "hasHeaderRecord": true,
+    "columnMapping": {
+      "date": { "columnIndex": 0 },
+      "amount": { "columnIndex": 1 },
+      "currency": { "columnIndex": 2 },
+      "categoryName": { "columnIndex": 3 },
+      "description": { "columnIndex": 4 }
+    }
+  }
+}
+
+###
+
+// ImportPresetsController — update preset
+PUT {{FinTracker.API_HostAddress}}/api/import/presets/{{presetId}}
+Content-Type: application/json
+
+{
+  "name": "My Bank (updated)",
+  "matchHeaders": ["Дата", "Сумма", "Валюта", "Категория", "Описание"],
+  "parseOptions": {
+    "delimiter": ";",
+    "culture": "ru-RU",
+    "hasHeaderRecord": true,
+    "columnMapping": {
+      "date": { "columnIndex": 0 },
+      "amount": { "columnIndex": 1 },
+      "currency": { "columnIndex": 2 },
+      "categoryName": { "columnIndex": 3 },
+      "description": { "columnIndex": 4 }
+    }
+  }
+}
+
+###
+
+// ImportPresetsController — delete preset
+DELETE {{FinTracker.API_HostAddress}}/api/import/presets/{{presetId}}
+
+###
+
+// ImportController — preview CSV headers + auto-match preset
+POST {{FinTracker.API_HostAddress}}/api/import/preview
+Content-Type: multipart/form-data; boundary=----Boundary
+
+------Boundary
+Content-Disposition: form-data; name="file"; filename="export.csv"
+Content-Type: text/csv
+
+< ./export.csv
+------Boundary--
+
+###
+
+// ImportController — import with custom column mapping (JSON in form field "mapping")
+POST {{FinTracker.API_HostAddress}}/api/import
+Content-Type: multipart/form-data; boundary=----Boundary
+
+------Boundary
+Content-Disposition: form-data; name="files"; filename="export.csv"
+Content-Type: text/csv
+
+< ./export.csv
+------Boundary
+Content-Disposition: form-data; name="mapping"
+
+{
+  "delimiter": ";",
+  "culture": "ru-RU",
+  "hasHeaderRecord": true,
+  "columnMapping": {
+    "date": { "columnIndex": 0 },
+    "amount": { "columnIndex": 7 },
+    "currency": { "columnIndex": 8 },
+    "categoryName": { "columnIndex": 10 },
+    "description": { "columnIndex": 13 },
+    "type": {
+      "column": { "columnIndex": 12 },
+      "incomeValues": ["income", "зачисление", "пополнение"],
+      "expenseValues": ["expense", "списание", "расход"]
+    }
+  }
+}
+------Boundary--
+
+###
+
+// ImportController — import by preset id (T-Bank: a1b2c3d4-e5f6-4789-a012-3456789abcde)
+POST {{FinTracker.API_HostAddress}}/api/import
+Content-Type: multipart/form-data; boundary=----Boundary
+
+------Boundary
+Content-Disposition: form-data; name="files"; filename="export.csv"
+Content-Type: text/csv
+
+< ./export.csv
+------Boundary
+Content-Disposition: form-data; name="presetId"
+
+a1b2c3d4-e5f6-4789-a012-3456789abcde
+------Boundary--
+
+###
+
 // TagsController
 
 GET {{FinTracker.API_HostAddress}}/api/tags

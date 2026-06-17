@@ -41,6 +41,36 @@ namespace FinTracker.Data.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("FinTracker.Domain.Models.ImportPreset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MatchHeadersJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ParseOptionsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ImportPresets");
+                });
+
             modelBuilder.Entity("FinTracker.Domain.Models.Position", b =>
                 {
                     b.Property<Guid>("Id")
