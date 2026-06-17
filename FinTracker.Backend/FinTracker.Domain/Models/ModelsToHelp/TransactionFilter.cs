@@ -40,7 +40,7 @@ public class TransactionFilter
     /// </summary>
     public Guid? ScopeId { get; set; }
     /// <summary>
-    /// Быстрый поиск: поиск в описании, ... (пока все)
+    /// Быстрый поиск: описание, комментарий, имя категории, имена тегов
     /// </summary>
     [MaxLength(50, ErrorMessage = "Поисковый запрос не должен превышать 50 символов")]
     public string? Search { get; set; }
