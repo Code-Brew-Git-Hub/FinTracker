@@ -1,9 +1,14 @@
+# Runner "docker-host" должен монтировать сокет хоста:
+#   volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]
+# На хосте Docker daemon — insecure-registries для HTTP registry:
+#   { "insecure-registries": ["192.168.0.21:5050"] }
+
 stages:
   - build
   - deploy
 
 variables:
-  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: unix:///var/run/docker.sock
   DOCKER_TLS_CERTDIR: ""
   FRONTEND_PORT: "8081"
   API_PORT: "5009"
@@ -11,13 +16,11 @@ variables:
 
 .docker-job:
   image: docker:27
-  services:
-    - name: docker:27-dind
-      command: ["--tls=false"]
-  variables:
-    DOCKER_HOST: tcp://docker:2375
+  tags:
+    - docker-host
   before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker info
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
 
 build-api:
   extends: .docker-job
