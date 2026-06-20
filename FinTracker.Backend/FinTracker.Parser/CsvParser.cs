@@ -52,7 +52,7 @@ public class CsvParser
 
             ResetReader(buffered);
 
-            using var csvReader = new CsvReader(buffered, config);
+            using var csvReader = new CsvReader(buffered, config, leaveOpen: true);
             csvReader.Context.RegisterClassMap(new DynamicCsvMap(options.ColumnMapping, options));
 
             if (options.HasHeaderRecord)
@@ -178,7 +178,7 @@ public class CsvParser
     {
         ResetReader(reader);
 
-        using var csv = new CsvReader(reader, config);
+        using var csv = new CsvReader(reader, config, leaveOpen: true);
         await csv.ReadAsync();
         csv.ReadHeader();
 
@@ -221,7 +221,8 @@ public class CsvParser
 
     private static async Task<(StreamReader Reader, bool ShouldDispose)> PrepareReaderAsync(StreamReader reader)
     {
-        if (reader.BaseStream.CanSeek)
+        // HTTP upload streams (IFormFile) are not reliably seekable even when CanSeek is true.
+        if (reader.BaseStream is FileStream && reader.BaseStream.CanSeek)
         {
             ResetReader(reader);
             return (reader, false);
@@ -230,6 +231,6 @@ public class CsvParser
         var memoryStream = new MemoryStream();
         await reader.BaseStream.CopyToAsync(memoryStream);
         memoryStream.Position = 0;
-        return (new StreamReader(memoryStream), true);
+        return (new StreamReader(memoryStream, reader.CurrentEncoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true), true);
     }
 }
