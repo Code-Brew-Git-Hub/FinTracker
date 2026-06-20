@@ -9,7 +9,7 @@ stages:
 variables:
   DOCKER_HOST: unix:///var/run/docker.sock
   DOCKER_TLS_CERTDIR: ""
-  FRONTEND_PORT: "8081"
+  FRONTEND_PORT: "8082"
   API_PORT: "5009"
   IMAGE_TAG: latest
 
@@ -69,10 +69,12 @@ deploy:
   script:
     - export REGISTRY_IMAGE="$CI_REGISTRY_IMAGE"
     - export FINTRACKER_VERSION="$IMAGE_TAG"
+    - export COMPOSE_PROJECT_NAME=fintracker
     - docker compose -f docker-compose.deploy.yml pull
     - docker compose -f docker-compose.deploy.yml up -d --remove-orphans
+    - docker compose -f docker-compose.deploy.yml ps
   environment:
     name: fintracker
-    url: http://192.168.0.21:8081
+    url: http://192.168.0.21:8082
   rules:
     - if: $CI_COMMIT_BRANCH == "main"

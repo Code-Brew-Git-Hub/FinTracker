@@ -1,4 +1,4 @@
-# GitLab CI/CD: деплой из Container Registry (порт фронтенда — 8081).
+# GitLab CI/CD: деплой из Container Registry (порт фронтенда — 8082).
 services:
   postgres:
     image: postgres:17-alpine
@@ -29,9 +29,10 @@ services:
       DB_NAME: ${DB_NAME:-FinTrackerDb}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-fintracker}
-      AllowedOrigins__0: http://localhost:${FRONTEND_PORT:-8081}
-      AllowedOrigins__1: http://127.0.0.1:${FRONTEND_PORT:-8081}
-      AllowedOrigins__2: http://localhost:${API_PORT:-5009}
+      AllowedOrigins__0: http://localhost:${FRONTEND_PORT:-8082}
+      AllowedOrigins__1: http://127.0.0.1:${FRONTEND_PORT:-8082}
+      AllowedOrigins__2: http://192.168.0.21:${FRONTEND_PORT:-8082}
+      AllowedOrigins__3: http://localhost:${API_PORT:-5009}
     ports:
       - "${API_PORT:-5009}:8080"
 
@@ -41,7 +42,7 @@ services:
     depends_on:
       - api
     ports:
-      - "${FRONTEND_PORT:-8081}:80"
+      - "${FRONTEND_PORT:-8082}:80"
 
 volumes:
   postgres_data:
