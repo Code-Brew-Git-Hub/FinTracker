@@ -16,8 +16,6 @@ variables:
 
 .docker-job:
   image: docker:27
-  tags:
-    - docker-host
   before_script:
     - docker info
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
@@ -64,7 +62,7 @@ deploy:
     - docker compose -f docker-compose.deploy.yml pull
     - docker compose -f docker-compose.deploy.yml up -d --remove-orphans
   environment:
-    name: production
-    url: http://localhost:8081
+    name: fintracker
+    url: http://192.168.0.21:8081
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
