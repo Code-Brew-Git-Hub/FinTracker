@@ -1,7 +1,6 @@
-# Runner "docker-host" должен монтировать сокет хоста:
-#   volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]
-# На хосте Docker daemon — insecure-registries для HTTP registry:
-#   { "insecure-registries": ["192.168.0.21:5050"] }
+# Runner tags: production, docker, deploy
+# Сокет хоста: volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]
+# HTTP registry: { "insecure-registries": ["192.168.0.21:5050"] }
 
 stages:
   - build
@@ -20,8 +19,19 @@ variables:
     - docker info
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
 
-build-api:
+.docker-build-job:
   extends: .docker-job
+  tags:
+    - docker
+
+.docker-deploy-job:
+  extends: .docker-job
+  tags:
+    - deploy
+    - docker
+
+build-api:
+  extends: .docker-build-job
   stage: build
   script:
     - |
@@ -36,7 +46,7 @@ build-api:
     - if: $CI_COMMIT_BRANCH == "main"
 
 build-frontend:
-  extends: .docker-job
+  extends: .docker-build-job
   stage: build
   script:
     - |
@@ -51,7 +61,7 @@ build-frontend:
     - if: $CI_COMMIT_BRANCH == "main"
 
 deploy:
-  extends: .docker-job
+  extends: .docker-deploy-job
   stage: deploy
   needs:
     - build-api
