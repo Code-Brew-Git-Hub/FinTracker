@@ -88,6 +88,7 @@ public static class ImportPresetSeedData
                     Amount = new CsvColumnFieldMappingDto { ColumnIndex = 7 },
                     Currency = new CsvColumnFieldMappingDto { ColumnIndex = 8 },
                     CategoryName = new CsvColumnFieldMappingDto { ColumnIndex = 10 },
+                    Description = new CsvColumnFieldMappingDto { ColumnIndex = 6 },
                     Type = new CsvTypeFieldMappingDto
                     {
                         Column = new CsvColumnFieldMappingDto { ColumnIndex = 12 },
