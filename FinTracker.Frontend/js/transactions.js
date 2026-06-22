@@ -1,4 +1,3 @@
-const API_URL = "http://localhost:5009/api";
 
 const tableBody = document.querySelector("#transactionsTableBody");
 const transactionsCount = document.querySelector("#transactionsCount");

@@ -1,4 +1,3 @@
-const API_BASE_URL = "http://localhost:5009/api";
 
 let analyticsState = {
     categories: [],
@@ -129,9 +128,9 @@ function initAnalyticsEvents() {
 async function loadAnalyticsDictionaries() {
     try {
         const [categoriesResponse, scopesResponse, tagsResponse] = await Promise.all([
-            fetchJson(`${API_BASE_URL}/categories`),
-            fetchJson(`${API_BASE_URL}/scopes`),
-            fetchJson(`${API_BASE_URL}/tags`)
+            fetchJson(`${API_URL}/categories`),
+            fetchJson(`${API_URL}/scopes`),
+            fetchJson(`${API_URL}/tags`)
         ]);
 
         analyticsState.categories = normalizeArrayResponse(categoriesResponse);
@@ -161,11 +160,11 @@ async function loadAnalyticsData() {
         });
 
         const [summaryResponse, categoryResponse, scopeResponse, tagResponse, timeResponse] = await Promise.all([
-            fetchJson(`${API_BASE_URL}/analytics/summary${query}`),
-            fetchJson(`${API_BASE_URL}/analytics/by-category${expenseQuery}`),
-            fetchJson(`${API_BASE_URL}/analytics/by-scope${expenseQuery}`),
-            fetchJson(`${API_BASE_URL}/analytics/by-tag${expenseQuery}`),
-            fetchJson(`${API_BASE_URL}/analytics/by-time${query}&grouping=${encodeURIComponent(analyticsState.grouping)}`)
+            fetchJson(`${API_URL}/analytics/summary${query}`),
+            fetchJson(`${API_URL}/analytics/by-category${expenseQuery}`),
+            fetchJson(`${API_URL}/analytics/by-scope${expenseQuery}`),
+            fetchJson(`${API_URL}/analytics/by-tag${expenseQuery}`),
+            fetchJson(`${API_URL}/analytics/by-time${query}&grouping=${encodeURIComponent(analyticsState.grouping)}`)
         ]);
 
         const summary = unwrapData(summaryResponse);
