@@ -43,7 +43,6 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
 
             if (dto.ReplaceTagIds != null)
             {
-                //transaction.TransactionTags.Clear();
                 transaction.TransactionTags = dto.ReplaceTagIds
                     .Select(tagId => new TransactionTag
                     {
@@ -106,14 +105,44 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
             .ToListAsync();
     }
 
+    public async Task<int> GetFilteredCountAsync(TransactionFilter filter, bool includeDeleted)
+    {
+        return await ApplyFilter(filter, includeDeleted).CountAsync();
+    }
+
     public async Task<List<Transaction>> GetFilteredAsync(TransactionFilter filter, bool includeDeleted)
     {
-        var query = context.Transactions
-        .Include(t => t.Category)
-        .Include(t => t.Scope)
-        .Include(t => t.TransactionTags)
-            .ThenInclude(tt => tt.Tag)
-        .AsQueryable();
+        return await ApplyFilter(filter, includeDeleted)
+            .Include(t => t.Category)
+            .Include(t => t.Scope)
+            .Include(t => t.TransactionTags)
+                .ThenInclude(tt => tt.Tag)
+            .OrderBy(t => t.DateUtc)
+            .ThenBy(t => t.Id)
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToListAsync();
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await context.SaveChangesAsync();
+    }
+
+    public void ClearChangeTracker()
+    {
+        context.ChangeTracker.Clear();
+    }
+
+    public async Task UpdateAsync(Transaction transaction)
+    {
+        context.Transactions
+            .Update(transaction);
+    }
+
+    private IQueryable<Transaction> ApplyFilter(TransactionFilter filter, bool includeDeleted)
+    {
+        var query = context.Transactions.AsQueryable();
 
         if (filter.DateFrom != null)
             query = query.Where(t => t.DateUtc >= filter.DateFrom);
@@ -141,7 +170,7 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
 
         if (filter.TagIds != null && filter.TagIds.Any())
             query = query.Where(t => t.TransactionTags
-                                      .Any(tt => filter.TagIds.Contains(tt.TagId)));
+                .Any(tt => filter.TagIds.Contains(tt.TagId)));
 
         if (!string.IsNullOrEmpty(filter.Search))
         {
@@ -156,31 +185,6 @@ public class TransactionRepository(AppDbContext context) : ITransactionRepositor
         if (!includeDeleted)
             query = query.Where(t => !t.IsDeleted);
 
-        query = query
-            .OrderBy(t => t.DateUtc)
-            .ThenBy(t => t.Id);
-
-        // Пагинация
-        query = query
-            .Skip((filter.Page - 1) * filter.PageSize)
-            .Take(filter.PageSize);
-
-        return await query.ToListAsync();
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await context.SaveChangesAsync();
-    }
-
-    public void ClearChangeTracker()
-    {
-        context.ChangeTracker.Clear();
-    }
-
-    public async Task UpdateAsync(Transaction transaction)
-    {
-        context.Transactions
-            .Update(transaction);
+        return query;
     }
 }

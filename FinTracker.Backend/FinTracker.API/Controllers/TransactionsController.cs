@@ -13,14 +13,23 @@ public class TransactionsController(ITransactionService transactionService,
     IMapper mapper) : ControllerBase
 {
 
+    /// <summary>
+    /// Список транзакций с фильтрацией и пагинацией (total, page, pageSize, totalPages).
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<TransactionDto[]>>> GetAll([FromQuery] TransactionFilter filter, [FromQuery] bool includeDeleted = false)
+    public async Task<ActionResult<ApiResponse<PagedResponse<TransactionDto>>>> GetAll(
+        [FromQuery] TransactionFilter filter,
+        [FromQuery] bool includeDeleted = false)
     {
-        var transactions = await transactionService.GetFilteredAsync(filter, includeDeleted);
+        var result = await transactionService.GetFilteredAsync(filter, includeDeleted);
 
-        var transactionsDto = mapper.Map<TransactionDto[]>(transactions);
-
-        return Ok(ApiResponse.Ok(transactionsDto));
+        return Ok(ApiResponse.Ok(new PagedResponse<TransactionDto>
+        {
+            Items = mapper.Map<List<TransactionDto>>(result.Items),
+            Total = result.Total,
+            Page = result.Page,
+            PageSize = result.PageSize
+        }));
     }
 
     [HttpGet("{id:guid}")]

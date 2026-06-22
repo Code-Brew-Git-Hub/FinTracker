@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Position> TransactionItems { get; set; }
     public DbSet<TransactionLink> TransactionLinks { get; set; }
     public DbSet<TransactionLinkEntry> TransactionLinkEntries { get; set; }
+    public DbSet<ImportPreset> ImportPresets { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -133,6 +134,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithMany(t => t.LinkEntries)
             .HasForeignKey(tle => tle.TransactionId)
             .OnDelete(DeleteBehavior.Restrict);
+        #endregion
+
+        #region ImportPreset
+        modelBuilder.Entity<ImportPreset>()
+            .HasKey(p => p.Id);
+        modelBuilder.Entity<ImportPreset>()
+            .Property(p => p.Name)
+            .IsRequired()
+            .HasMaxLength(100);
+        modelBuilder.Entity<ImportPreset>()
+            .Property(p => p.ParseOptionsJson)
+            .IsRequired();
+        modelBuilder.Entity<ImportPreset>()
+            .Property(p => p.MatchHeadersJson)
+            .IsRequired();
+        modelBuilder.Entity<ImportPreset>()
+            .HasIndex(p => p.Name)
+            .IsUnique();
         #endregion
 
         base.OnModelCreating(modelBuilder);
