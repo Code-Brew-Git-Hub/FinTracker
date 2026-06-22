@@ -24,6 +24,21 @@ namespace FinTracker.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ImportPresets",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    ParseOptionsJson = table.Column<string>(type: "text", nullable: false),
+                    MatchHeadersJson = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ImportPresets", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Scopes",
                 columns: table => new
                 {
@@ -172,6 +187,12 @@ namespace FinTracker.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ImportPresets_Name",
+                table: "ImportPresets",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Scopes_Name",
                 table: "Scopes",
                 column: "Name",
@@ -217,6 +238,9 @@ namespace FinTracker.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ImportPresets");
+
             migrationBuilder.DropTable(
                 name: "TransactionItems");
 

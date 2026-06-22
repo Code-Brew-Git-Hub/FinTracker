@@ -9,7 +9,9 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace FinTracker.Data.Services;
 
-public class ImportService(TransactionParser parser,
+public class ImportService(
+    TransactionParser parser,
+    IImportPresetService importPresetService,
     ITransactionRepository transactionRepository,
     ICategoryRepository categoryRepository,
     IMemoryCache memoryCache) : IImportService
@@ -18,14 +20,56 @@ public class ImportService(TransactionParser parser,
     private const int CategoryResolveBatchSize = 100;
 
     private static readonly MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
-        .SetAbsoluteExpiration(TimeSpan.FromHours(1))  // Сохраняем в кэш на 1 час
+        .SetAbsoluteExpiration(TimeSpan.FromHours(1))
         .SetPriority(CacheItemPriority.Normal);
 
-    public async Task<ImportResultDto> ImportAsync(StreamReader reader, string filename)
+    public async Task<CsvPreviewDto> PreviewAsync(StreamReader reader, string filename)
     {
-        var parseResult = await parser.Parse(reader, filename);
+        var structure = await parser.ReadFileStructureAsync(reader, filename);
+        var presets = await importPresetService.GetAllAsync();
+        var match = await importPresetService.FindMatchAsync(structure.Headers);
 
-        if (parseResult.Errors.Any())
+        return new CsvPreviewDto
+        {
+            Headers = structure.Headers,
+            DetectedDelimiter = match?.ParseOptions.Delimiter ?? structure.DetectedDelimiter,
+            MatchedPresetId = match?.Id,
+            MatchedPresetName = match?.Name,
+            SuggestedParseOptions = match?.ParseOptions,
+            Presets = presets.ToList()
+        };
+    }
+
+    public Task<ImportResultDto> ImportAsync(StreamReader reader, string filename, Guid presetId) =>
+        ImportCoreAsync(reader, filename, presetId, options: null);
+
+    public Task<ImportResultDto> ImportAsync(StreamReader reader, string filename, CsvParseOptionsDto options) =>
+        ImportCoreAsync(reader, filename, presetId: null, options);
+
+    private async Task<ImportResultDto> ImportCoreAsync(
+        StreamReader reader,
+        string filename,
+        Guid? presetId,
+        CsvParseOptionsDto? options)
+    {
+        CsvParseOptionsDto parseOptionsDto;
+        if (presetId.HasValue)
+        {
+            parseOptionsDto = await importPresetService.GetParseOptionsAsync(presetId.Value);
+        }
+        else if (options != null)
+        {
+            parseOptionsDto = options;
+        }
+        else
+        {
+            throw new ArgumentException("Укажите presetId или mapping");
+        }
+
+        var parseOptions = ImportParseOptionsMapper.ToParserOptions(parseOptionsDto);
+        var parseResult = await parser.ParseAsync(reader, filename, parseOptions);
+
+        if (!parseResult.Transactions.Any() && parseResult.Errors.Any())
             throw new ArgumentException(parseResult.Errors.First().Reason);
 
         var pendingCategoryNames = new HashSet<string>();

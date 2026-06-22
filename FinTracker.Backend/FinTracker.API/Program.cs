@@ -42,6 +42,7 @@ public class Program
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             await db.Database.MigrateAsync();
+            await ImportPresetSeedData.SeedAsync(db);
         }
 
         // Обработка ошибок

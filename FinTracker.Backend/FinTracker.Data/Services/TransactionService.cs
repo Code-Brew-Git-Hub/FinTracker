@@ -1,4 +1,5 @@
 ﻿using FinTracker.Domain.Dtos.Transactions;
+using FinTracker.Domain.Dtos.Universal;
 using FinTracker.Domain.Enums;
 using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Models;
@@ -96,9 +97,18 @@ public class TransactionService(ITransactionRepository transactionRepository) : 
         return transaction;
     }
 
-    public async Task<List<Transaction>> GetFilteredAsync(TransactionFilter filter, bool includeDeleted)
+    public async Task<PagedResponse<Transaction>> GetFilteredAsync(TransactionFilter filter, bool includeDeleted)
     {
-        return await transactionRepository.GetFilteredAsync(filter, includeDeleted);
+        var total = await transactionRepository.GetFilteredCountAsync(filter, includeDeleted);
+        var items = await transactionRepository.GetFilteredAsync(filter, includeDeleted);
+
+        return new PagedResponse<Transaction>
+        {
+            Items = items,
+            Total = total,
+            Page = filter.Page,
+            PageSize = filter.PageSize
+        };
     }
 
     public async Task SoftDeleteAsync(Guid id)

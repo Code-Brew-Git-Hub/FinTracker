@@ -44,6 +44,7 @@ public static class Extensions
         serviceCollection.AddScoped<IPositionRepository, PositionRepository>();
         serviceCollection.AddScoped<ILinkRepository, LinkRepository>();
         serviceCollection.AddScoped<IAnalyticsRepository, AnalyticsRepository>();
+        serviceCollection.AddScoped<IImportPresetRepository, ImportPresetRepository>();
 
         return serviceCollection;
     }
@@ -55,6 +56,7 @@ public static class Extensions
         serviceCollection.AddScoped<ICategoryService, CategoryService>();
         serviceCollection.AddScoped<ITagService, TagService>();
         serviceCollection.AddScoped<IImportService, ImportService>();
+        serviceCollection.AddScoped<IImportPresetService, ImportPresetService>();
         serviceCollection.AddScoped<IPositionService, PositionService>();
         serviceCollection.AddScoped<ILinkService, LinkService>();
         serviceCollection.AddScoped<IAnalyticsService, AnalyticsService>();
@@ -64,9 +66,8 @@ public static class Extensions
 
     public static IServiceCollection AddParser(this IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<CsvParser>();
-        serviceCollection.AddScoped<TransactionParser>();
         serviceCollection.AddScoped<CsvParser>();
+        serviceCollection.AddScoped<TransactionParser>();
 
         return serviceCollection;
     }

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinTracker.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260520162946_Init")]
+    [Migration("20260617183151_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -42,6 +42,36 @@ namespace FinTracker.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("FinTracker.Domain.Models.ImportPreset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MatchHeadersJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ParseOptionsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("ImportPresets");
                 });
 
             modelBuilder.Entity("FinTracker.Domain.Models.Position", b =>

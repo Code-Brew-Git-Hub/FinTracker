@@ -2,22 +2,24 @@
 
 namespace FinTracker.Parser;
 
-public class TransactionParser
+public class TransactionParser(CsvParser csvParser)
 {
-    private readonly CsvParser _csvParser;
-
-    public TransactionParser(CsvParser csvParser)
+    public async Task<CsvFileStructure> ReadFileStructureAsync(StreamReader reader, string filename)
     {
-        _csvParser = csvParser;
+        EnsureCsvExtension(filename);
+        return await csvParser.ReadFileStructureAsync(reader);
     }
-    public async Task<ParseResult> Parse(StreamReader reader, string filename)
+
+    public async Task<ParseResult> ParseAsync(StreamReader reader, string filename, CsvParseOptions options)
+    {
+        EnsureCsvExtension(filename);
+        return await csvParser.ParseAsync(reader, options);
+    }
+
+    private static void EnsureCsvExtension(string filename)
     {
         var extension = Path.GetExtension(filename).ToLowerInvariant();
-
-        return extension switch
-        {
-            ".csv" => await _csvParser.ParseCSV(reader),
-            _ => new ParseResult() { Errors = new() { new() { Reason = "Не поддерживаемый тип файла" } } }
-        };
+        if (extension != ".csv")
+            throw new ArgumentException("Поддерживается только формат CSV");
     }
 }
