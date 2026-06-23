@@ -140,16 +140,16 @@ $composeFiles = @()
 if ($isServer) {
     $composeFiles = @("-f", "docker-compose.images.yml", "-f", "docker-compose.server.yml")
 } elseif ($Build) {
-    $composeFiles = @()
+    $composeFiles = @("-f", "docker-compose.yml", "-f", "docker-compose.local.yml")
 } else {
-    $composeFiles = @("-f", "docker-compose.images.yml")
+    $composeFiles = @("-f", "docker-compose.images.yml", "-f", "docker-compose.local.yml")
 }
 
 $composeExitCode = 0
 
 if ($Build -and -not $isServer) {
     Write-Step "Starting with local build"
-    $upResult = Invoke-NativeCommand { docker compose up --build -d }
+    $upResult = Invoke-NativeCommand { docker compose -f docker-compose.yml -f docker-compose.local.yml up --build -d }
     Write-Host $upResult.Output
     $composeExitCode = $upResult.ExitCode
 } elseif ($isServer) {
@@ -168,7 +168,7 @@ if ($Build -and -not $isServer) {
     $useLocalBuild = $false
 
     Write-Step "Pulling images from GHCR"
-    $pullResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml pull }
+    $pullResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml -f docker-compose.local.yml pull }
     Write-Host $pullResult.Output
 
     if ($pullResult.ExitCode -ne 0) {
@@ -193,13 +193,13 @@ Falling back to local build from source (first run may take 5-15 min).
 
     if ($useLocalBuild) {
         Write-Step "Starting with local build (fallback)"
-        $upResult = Invoke-NativeCommand { docker compose up --build -d }
+        $upResult = Invoke-NativeCommand { docker compose -f docker-compose.yml -f docker-compose.local.yml up --build -d }
         Write-Host $upResult.Output
         $composeExitCode = $upResult.ExitCode
         $Build = $true
     } else {
         Write-Step "Starting containers"
-        $upResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml up -d }
+        $upResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml -f docker-compose.local.yml up -d }
         Write-Host $upResult.Output
         $composeExitCode = $upResult.ExitCode
     }
@@ -211,7 +211,7 @@ if ($composeExitCode -ne 0) {
 
 Write-Step "Container status"
 if ($Build -and -not $isServer) {
-    $psResult = Invoke-NativeCommand { docker compose ps }
+    $psResult = Invoke-NativeCommand { docker compose -f docker-compose.yml -f docker-compose.local.yml ps }
 } else {
     $psResult = Invoke-NativeCommand { docker compose @composeFiles ps }
 }

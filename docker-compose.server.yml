@@ -1,16 +1,14 @@
-# Серверный режим для docker-host с Nginx Proxy Manager (npm).
-# NPM уже занимает 80/443; cadvisor часто занимает 8080.
-# Frontend публикуется на FINTRACKER_HOST_PORT (по умолчанию 8082) — NPM проксирует на него.
-#
+# Серверный режим: Nginx Proxy Manager проксирует на FINTRACKER_HOST_PORT (8082).
 #   docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
+#
+# NPM: Scheme http, Forward Host 192.168.0.20, Forward Port 8082
 
 services:
   api:
-    ports: !reset []
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       AllowedOrigins__0: ${PUBLIC_URL}
 
   frontend:
-    ports: !reset
+    ports:
       - "${FINTRACKER_HOST_PORT:-8082}:80"

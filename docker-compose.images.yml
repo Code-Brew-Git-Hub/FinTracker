@@ -40,16 +40,12 @@ services:
       AllowedOrigins__1: http://127.0.0.1:${FRONTEND_PORT:-8080}
       AllowedOrigins__2: http://localhost:${API_PORT:-5009}
       AllowedOrigins__3: http://127.0.0.1:${API_PORT:-5009}
-    ports:
-      - "${API_PORT:-5009}:8080"
 
   frontend:
     image: ghcr.io/${GHCR_OWNER:-code-brew-git-hub}/fintracker-frontend:${FINTRACKER_VERSION:-latest}
     restart: unless-stopped
     depends_on:
       - api
-    ports:
-      - "${FRONTEND_PORT:-8080}:80"
 
 volumes:
   postgres_data:

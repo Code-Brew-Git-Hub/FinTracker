@@ -1,11 +1,8 @@
 # Автодеплой: push в main → runner на docker-host собирает и публикует FinTracker.
 #
-# Один раз в GitLab → Settings → CI/CD → Variables:
-#   DB_PASSWORD (masked) — пароль PostgreSQL
-#   DOMAIN, PUBLIC_URL (optional)
-#   FINTRACKER_HOST_PORT (optional, default 8082) — порт для Nginx Proxy Manager
-#
-# На docker-host уже должны быть: npm (80/443), свободный порт 8082 для frontend.
+# GitLab → Settings → CI/CD → Variables:
+#   DB_PASSWORD (masked)
+#   DOMAIN, PUBLIC_URL, FINTRACKER_HOST_PORT (optional, default 8082)
 
 image: docker:24
 
@@ -30,9 +27,7 @@ deploy:production:
     - df -h
     - docker system df
     - docker container prune -f || true
-    - docker image prune -af || true
     - docker builder prune -af || true
-    - df -h
     - sh deploy/write-env-from-ci.sh
     - docker compose -f docker-compose.yml -f docker-compose.server.yml build
     - docker compose -f docker-compose.yml -f docker-compose.server.yml down --remove-orphans || true
@@ -44,6 +39,14 @@ deploy:production:
         exit 1
       fi
     - docker compose -f docker-compose.yml -f docker-compose.server.yml ps
+    - |
+      PORT="${FINTRACKER_HOST_PORT:-8082}"
+      if ! docker compose -f docker-compose.yml -f docker-compose.server.yml ps | grep -E "${PORT}->80/tcp"; then
+        echo "ERROR: frontend port ${PORT} is not published on the host"
+        docker compose -f docker-compose.yml -f docker-compose.server.yml config
+        exit 1
+      fi
+      echo ">> frontend is published on port ${PORT}"
   environment:
     name: production
     url: $PUBLIC_URL
