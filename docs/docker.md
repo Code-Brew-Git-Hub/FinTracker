@@ -32,8 +32,8 @@
 | Что | Адрес |
 |-----|-------|
 | Сайт (интерфейс) | http://localhost:8080 |
-| API | http://localhost:5009 |
-| Swagger (документация API) | http://localhost:5009/swagger |
+| API (через frontend) | http://localhost:8080/api |
+| Swagger (только local) | http://localhost:5009/swagger |
 
 Порт сайта можно изменить в `.env` (`FRONTEND_PORT`).
 

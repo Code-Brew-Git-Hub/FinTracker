@@ -1,0 +1,35 @@
+# Серверный режим: HTTPS через Caddy, порты API/frontend не публикуются наружу.
+# GitLab CI (сборка из исходников):
+#   docker compose -f docker-compose.yml -f docker-compose.server.yml up -d
+# Готовые образы GHCR:
+#   docker compose -f docker-compose.images.yml -f docker-compose.server.yml up -d
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+
+  api:
+    ports: []
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      AllowedOrigins__0: ${PUBLIC_URL}
+
+  frontend:
+    ports: []
+
+volumes:
+  caddy_data:
+  caddy_config:

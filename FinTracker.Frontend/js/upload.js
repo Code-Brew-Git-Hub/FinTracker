@@ -1,3 +1,5 @@
+const API_URL = "/api";
+
 const navLinks =
     document.querySelectorAll(".nav a");
 

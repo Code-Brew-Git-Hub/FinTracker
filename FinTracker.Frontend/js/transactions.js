@@ -1,3 +1,4 @@
+const API_URL = "/api";
 
 const tableBody = document.querySelector("#transactionsTableBody");
 const transactionsCount = document.querySelector("#transactionsCount");

@@ -41,7 +41,7 @@ public class Program
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            await DatabaseMigrationHelper.MigrateWithLegacyBaselineAsync(db);
+            await db.Database.MigrateAsync();
             await ImportPresetSeedData.SeedAsync(db);
         }
 

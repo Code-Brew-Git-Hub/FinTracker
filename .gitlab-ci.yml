@@ -1,110 +1,34 @@
-# Runner tags: production, docker, deploy
-# Сокет хоста: volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]
-# HTTP registry: { "insecure-registries": ["192.168.0.21:5050"] }
+# Автодеплой: push в main → runner на docker-host собирает и публикует FinTracker.
+# На сервере ничего настраивать не нужно (runner уже должен быть на docker-host).
 #
-# Переменные CI/CD (Settings → CI/CD → Variables):
-#   API_URL        — https://api.example.com/api
-#   FRONTEND_URL   — https://fintracker.example.com
-#   DB_PASSWORD    — пароль PostgreSQL (masked)
-# Опционально: DB_NAME, DB_USER, API_PORT, FRONTEND_PORT
+# Один раз в GitLab → Settings → CI/CD → Variables:
+#   DB_PASSWORD        (masked) — пароль PostgreSQL
+#   LETSENCRYPT_EMAIL            — email для Let's Encrypt
+#   DOMAIN             (optional) — по умолчанию fintracker.trydov1k.online
+#   PUBLIC_URL         (optional) — по умолчанию https://$DOMAIN
+#
+# Если у runner есть tag — раскомментируйте секцию tags ниже и укажите свой.
 
 stages:
-  - build
   - deploy
 
 variables:
-  DOCKER_HOST: unix:///var/run/docker.sock
-  DOCKER_TLS_CERTDIR: ""
-  FRONTEND_PORT: "8082"
-  API_PORT: "5009"
-  IMAGE_TAG: latest
-  DB_NAME: FinTrackerDb
-  DB_USER: postgres
+  COMPOSE_PROJECT_NAME: fintracker
+  DOMAIN: "fintracker.trydov1k.online"
+  PUBLIC_URL: "https://fintracker.trydov1k.online"
 
-.docker-job:
-  image: docker:27
-  before_script:
-    - docker info
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-
-.docker-build-job:
-  extends: .docker-job
-  tags:
-    - docker
-
-.docker-deploy-job:
-  extends: .docker-job
-  tags:
-    - deploy
-    - docker
-
-build-api:
-  extends: .docker-build-job
-  stage: build
-  script:
-    - |
-      docker build \
-        -t "$CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHA" \
-        -t "$CI_REGISTRY_IMAGE/api:$IMAGE_TAG" \
-        -f FinTracker.Backend/Dockerfile \
-        FinTracker.Backend
-    - docker push "$CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHA"
-    - docker push "$CI_REGISTRY_IMAGE/api:$IMAGE_TAG"
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-
-build-frontend:
-  extends: .docker-build-job
-  stage: build
-  script:
-    - |
-      docker build \
-        -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA" \
-        -t "$CI_REGISTRY_IMAGE/frontend:$IMAGE_TAG" \
-        -f FinTracker.Frontend/Dockerfile \
-        FinTracker.Frontend
-    - docker push "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA"
-    - docker push "$CI_REGISTRY_IMAGE/frontend:$IMAGE_TAG"
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-
-deploy:
-  extends: .docker-deploy-job
+deploy:production:
   stage: deploy
-  needs:
-    - build-api
-    - build-frontend
-  script:
-    - export REGISTRY_IMAGE="$CI_REGISTRY_IMAGE"
-    - export FINTRACKER_VERSION="$IMAGE_TAG"
-    - export COMPOSE_PROJECT_NAME=fintracker
-    - |
-      cat > .env <<EOF
-      DB_NAME=${DB_NAME:-FinTrackerDb}
-      DB_USER=${DB_USER:-postgres}
-      DB_PASSWORD=${DB_PASSWORD:-fintracker}
-      API_PORT=${API_PORT:-5009}
-      FRONTEND_PORT=${FRONTEND_PORT:-8082}
-      API_URL=${API_URL:-http://localhost:8082/api}
-      FRONTEND_URL=${FRONTEND_URL:-http://localhost:8082}
-      REGISTRY_IMAGE=${REGISTRY_IMAGE}
-      FINTRACKER_VERSION=${FINTRACKER_VERSION}
-      EOF
-    - docker compose -f docker-compose.deploy.yml pull
-    - docker compose -f docker-compose.deploy.yml up -d --remove-orphans --force-recreate
-    - docker compose -f docker-compose.deploy.yml ps
-    - |
-      for i in $(seq 1 30); do
-        if docker compose -f docker-compose.deploy.yml exec -T frontend wget -q --spider http://127.0.0.1/api/import/presets; then
-          exit 0
-        fi
-        sleep 2
-      done
-      echo "API proxy check failed"
-      docker compose -f docker-compose.deploy.yml logs api --tail 50
-      exit 1
-  environment:
-    name: fintracker
-    url: $FRONTEND_URL
+  tags:
+    - docker
   rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - chmod +x deploy/write-env-from-ci.sh
+    - ./deploy/write-env-from-ci.sh
+    - docker compose -f docker-compose.yml -f docker-compose.server.yml build
+    - docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --remove-orphans
+    - docker compose -f docker-compose.yml -f docker-compose.server.yml ps
+  environment:
+    name: production
+    url: $PUBLIC_URL
