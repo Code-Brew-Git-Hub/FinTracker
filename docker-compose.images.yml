@@ -16,10 +16,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-FinTrackerDb}"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      start_period: 60s
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 12
 
   api:
     image: ghcr.io/${GHCR_OWNER:-code-brew-git-hub}/fintracker-api:${FINTRACKER_VERSION:-latest}
