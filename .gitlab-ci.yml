@@ -1,6 +1,12 @@
 # Runner tags: production, docker, deploy
 # Сокет хоста: volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]
 # HTTP registry: { "insecure-registries": ["192.168.0.21:5050"] }
+#
+# Переменные CI/CD (Settings → CI/CD → Variables):
+#   API_URL        — https://api.example.com/api
+#   FRONTEND_URL   — https://fintracker.example.com
+#   DB_PASSWORD    — пароль PostgreSQL (masked)
+# Опционально: DB_NAME, DB_USER, API_PORT, FRONTEND_PORT
 
 stages:
   - build
@@ -12,6 +18,8 @@ variables:
   FRONTEND_PORT: "8082"
   API_PORT: "5009"
   IMAGE_TAG: latest
+  DB_NAME: FinTrackerDb
+  DB_USER: postgres
 
 .docker-job:
   image: docker:27
@@ -70,11 +78,23 @@ deploy:
     - export REGISTRY_IMAGE="$CI_REGISTRY_IMAGE"
     - export FINTRACKER_VERSION="$IMAGE_TAG"
     - export COMPOSE_PROJECT_NAME=fintracker
+    - |
+      cat > .env <<EOF
+      DB_NAME=${DB_NAME}
+      DB_USER=${DB_USER}
+      DB_PASSWORD=${DB_PASSWORD}
+      API_PORT=${API_PORT}
+      FRONTEND_PORT=${FRONTEND_PORT}
+      API_URL=${API_URL}
+      FRONTEND_URL=${FRONTEND_URL}
+      REGISTRY_IMAGE=${REGISTRY_IMAGE}
+      FINTRACKER_VERSION=${FINTRACKER_VERSION}
+      EOF
     - docker compose -f docker-compose.deploy.yml pull
     - docker compose -f docker-compose.deploy.yml up -d --remove-orphans
     - docker compose -f docker-compose.deploy.yml ps
   environment:
     name: fintracker
-    url: http://192.168.0.21:8082
+    url: $FRONTEND_URL
   rules:
     - if: $CI_COMMIT_BRANCH == "main"

@@ -51,21 +51,29 @@ function Invoke-NativeCommand([scriptblock]$Command) {
     }
 }
 
-function Get-FrontendPort {
-    $defaultPort = 8080
+function Get-EnvValue([string]$Name, [string]$Default) {
     if (-not (Test-Path -LiteralPath ".env")) {
-        return $defaultPort
+        return $Default
     }
 
     $line = Get-Content -LiteralPath ".env" -Encoding UTF8 |
-        Where-Object { $_ -match '^\s*FRONTEND_PORT\s*=\s*(\d+)\s*$' } |
+        Where-Object { $_ -match "^\s*$([regex]::Escape($Name))\s*=\s*(.+?)\s*$" } |
         Select-Object -First 1
 
-    if ($line -match '=\s*(\d+)') {
-        return [int]$Matches[1]
+    if ($line -match '=\s*(.+)') {
+        return $Matches[1].Trim()
     }
 
-    return $defaultPort
+    return $Default
+}
+
+function Get-FrontendPort {
+    $value = Get-EnvValue -Name "FRONTEND_PORT" -Default "8080"
+    if ($value -match '^\d+$') {
+        return [int]$value
+    }
+
+    return 8080
 }
 
 Write-Step "Checking Docker"
@@ -93,7 +101,8 @@ if (-not (Test-Path -LiteralPath ".env")) {
 }
 
 $frontendPort = Get-FrontendPort
-$frontendUrl = "http://localhost:$frontendPort"
+$frontendUrl = Get-EnvValue -Name "FRONTEND_URL" -Default "http://localhost:$frontendPort"
+$apiUrl = Get-EnvValue -Name "API_URL" -Default "http://localhost:5009/api"
 
 $composeExitCode = 0
 
@@ -158,8 +167,7 @@ Write-Host $psResult.Output
 Write-Host ""
 Write-Host "FinTracker is running." -ForegroundColor Green
 Write-Host "  Frontend: $frontendUrl"
-Write-Host "  API:      http://localhost:5009"
-Write-Host "  Swagger:  http://localhost:5009/swagger"
+Write-Host "  API:      $apiUrl"
 Write-Host ""
 Write-Host "Stop: .\stop.ps1  or  docker compose down"
 
