@@ -21,6 +21,11 @@ function Invoke-DockerSilently([scriptblock]$Command) {
 
 Write-Host ">> Stopping FinTracker" -ForegroundColor Cyan
 
+if (Test-Path -LiteralPath "docker-compose.local.yml") {
+    Invoke-DockerSilently { docker compose -f docker-compose.yml -f docker-compose.local.yml down }
+    Invoke-DockerSilently { docker compose -f docker-compose.images.yml -f docker-compose.local.yml down }
+}
+
 if (Test-Path -LiteralPath "docker-compose.server.yml") {
     Invoke-DockerSilently { docker compose -f docker-compose.images.yml -f docker-compose.server.yml down }
 }
