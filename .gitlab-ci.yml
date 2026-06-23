@@ -1,0 +1,52 @@
+# Автодеплой: push в main → runner на docker-host собирает и публикует FinTracker.
+#
+# GitLab → Settings → CI/CD → Variables:
+#   DB_PASSWORD (masked)
+#   DOMAIN, PUBLIC_URL, FINTRACKER_HOST_PORT (optional, default 8082)
+
+image: docker:24
+
+stages:
+  - deploy
+
+variables:
+  COMPOSE_PROJECT_NAME: fintracker
+  DOMAIN: "fintracker.trydov1k.online"
+  PUBLIC_URL: "https://fintracker.trydov1k.online"
+  FINTRACKER_HOST_PORT: "8082"
+  DOCKER_TLS_CERTDIR: ""
+
+deploy:production:
+  stage: deploy
+  tags:
+    - docker
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - docker info
+    - df -h
+    - docker system df
+    - docker container prune -f || true
+    - docker builder prune -af || true
+    - sh deploy/write-env-from-ci.sh
+    - docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml build
+    - docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml down --remove-orphans || true
+    - |
+      if ! docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml up -d --remove-orphans --wait --wait-timeout 180; then
+        echo ">> service logs:"
+        docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml logs --no-log-prefix --tail 80 || true
+        docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml ps -a || true
+        exit 1
+      fi
+    - docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml ps
+    - |
+      PORT="${FINTRACKER_HOST_PORT:-8082}"
+      if ! docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml ps | grep -E "${PORT}->80/tcp"; then
+        echo "ERROR: frontend port ${PORT} is not published on the host"
+        docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml config
+        exit 1
+      fi
+      echo ">> frontend is published on port ${PORT}"
+  environment:
+    name: production
+    url: $PUBLIC_URL

@@ -1,0 +1,11 @@
+# Локальный режим (Windows / start.bat): публикация портов на localhost.
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.local.yml up -d
+
+services:
+  api:
+    ports:
+      - "${API_PORT:-5009}:8080"
+
+  frontend:
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"

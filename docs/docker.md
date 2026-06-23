@@ -17,12 +17,12 @@
 .\stop.bat     # остановка
 ```
 
-`start.bat` создаёт `.env`, скачивает или собирает компоненты и открывает http://localhost:8080.
+Локально используется `docker/docker-compose.local.yml` (порты 8080/5009). `start.bat` создаёт `.env`, скачивает или собирает компоненты и открывает http://localhost:8080.
 
 Если скачивание с GitHub не работает (`unauthorized`):
 
 ```powershell
-.\start.ps1 -Build
+.\scripts\start.ps1 -Build
 ```
 
 ---
@@ -32,8 +32,8 @@
 | Что | Адрес |
 |-----|-------|
 | Сайт (интерфейс) | http://localhost:8080 |
-| API | http://localhost:5009 |
-| Swagger (документация API) | http://localhost:5009/swagger |
+| API (через frontend) | http://localhost:8080/api |
+| Swagger (только local) | http://localhost:5009/swagger |
 
 Порт сайта можно изменить в `.env` (`FRONTEND_PORT`).
 
@@ -43,12 +43,12 @@
 
 ### 1. Готовые образы (быстрее)
 
-Скачиваются собранные версии программы с GitHub. Нужен файл `docker-compose.images.yml`.
+Скачиваются собранные версии программы с GitHub. Файлы compose лежат в папке `docker/`.
 
 ```bash
-cp .env.example .env
-docker compose -f docker-compose.images.yml pull
-docker compose -f docker-compose.images.yml up -d
+cp docker/.env.example .env
+docker compose -f docker/docker-compose.images.yml pull
+docker compose -f docker/docker-compose.images.yml up -d
 ```
 
 В `.env` укажите версию: `FINTRACKER_VERSION=v0.0.3` (см. [releases.md](releases.md)).
@@ -56,8 +56,8 @@ docker compose -f docker-compose.images.yml up -d
 ### 2. Сборка из исходников (надёжнее, если образы недоступны)
 
 ```bash
-cp .env.example .env
-docker compose up --build -d
+cp docker/.env.example .env
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.local.yml up --build -d
 ```
 
 Первый запуск: 5–15 минут.
@@ -68,24 +68,24 @@ docker compose up --build -d
 
 ```bash
 # если запускали через образы:
-docker compose -f docker-compose.images.yml down
+docker compose -f docker/docker-compose.images.yml down
 
 # если собирали из исходников:
-docker compose down
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.local.yml down
 ```
 
 **Данные сохраняются.** Чтобы удалить базу полностью:
 
 ```bash
-docker compose -f docker-compose.images.yml down -v
-docker compose down -v
+docker compose -f docker/docker-compose.images.yml down -v
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.local.yml down -v
 ```
 
 ---
 
 ## Настройки
 
-Файл [.env.example](../.env.example) → скопируйте в `.env`:
+Шаблон [docker/.env.example](../docker/.env.example) → скопируйте в `.env` в корне проекта:
 
 | Переменная | Назначение |
 |------------|------------|
@@ -113,8 +113,8 @@ docker compose down -v
 ## Пересборка одного компонента (для разработчиков)
 
 ```bash
-docker compose up --build api
-docker compose up --build frontend
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.local.yml up --build api
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.local.yml up --build frontend
 ```
 
 ---

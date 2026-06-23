@@ -1,0 +1,14 @@
+# Серверный режим: Nginx Proxy Manager проксирует на FINTRACKER_HOST_PORT (8082).
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml up -d
+#
+# NPM: Scheme http, Forward Host 192.168.0.20, Forward Port 8082
+
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      AllowedOrigins__0: ${PUBLIC_URL}
+
+  frontend:
+    ports:
+      - "${FINTRACKER_HOST_PORT:-8082}:80"

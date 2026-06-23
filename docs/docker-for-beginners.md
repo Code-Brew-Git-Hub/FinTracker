@@ -58,7 +58,7 @@ cd FinTracker
 
 - `start.bat` — запуск
 - `stop.bat` — остановка
-- `docker-compose.yml`
+- папка `docker/` — настройки Docker (можно не открывать)
 - папки `FinTracker.Backend` и `FinTracker.Frontend`
 
 Если `start.bat` нет — вы скачали не ту папку или не тот архив.
@@ -159,8 +159,8 @@ git pull
 2. Выполните:
 
 ```powershell
-docker compose -f docker-compose.images.yml down -v
-docker compose down -v
+docker compose -f docker/docker-compose.images.yml down -v
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.local.yml down -v
 ```
 
 3. Запустите **`start.bat`** снова
@@ -179,7 +179,7 @@ docker compose down -v
 Готовые образы на GitHub пока недоступны без авторизации. **Решение:**
 
 ```powershell
-.\start.ps1 -Build
+.\scripts\start.ps1 -Build
 ```
 
 Программа соберётся на вашем компьютере (дольше, но работает без интернет-скачивания с GitHub). Новые версии `start.bat` могут переключиться на сборку автоматически.
@@ -187,7 +187,7 @@ docker compose down -v
 ### Окно `start.bat` сразу закрывается
 
 - Запустите **`start.bat`** ещё раз — при ошибке окно должно остаться открытым
-- Или откройте PowerShell в папке проекта и выполните `.\start.ps1` — текст ошибки будет виден
+- Или откройте PowerShell в папке проекта и выполните `.\scripts\start.ps1` — текст ошибки будет виден
 
 ### «Port is already allocated» (порт занят)
 

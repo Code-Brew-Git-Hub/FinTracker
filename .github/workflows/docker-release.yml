@@ -120,7 +120,7 @@ jobs:
           body: |
             ## Self-hosted (готовые Docker-образы)
 
-            Скопируйте в папку проекта `.env` (из `.env.example`) и укажите версию:
+            Скопируйте в корень проекта `.env` (из `docker/.env.example`) и укажите версию:
 
             ```env
             FINTRACKER_VERSION=${{ needs.build-and-push.outputs.version }}
@@ -130,8 +130,8 @@ jobs:
             Запуск без сборки из исходников:
 
             ```bash
-            docker compose -f docker-compose.images.yml pull
-            docker compose -f docker-compose.images.yml up -d
+            docker compose -f docker/docker-compose.images.yml pull
+            docker compose -f docker/docker-compose.images.yml up -d
             ```
 
             - Frontend: http://localhost:8080
