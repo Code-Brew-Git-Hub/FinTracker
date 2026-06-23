@@ -28,7 +28,13 @@ deploy:production:
     - docker info
     - sh deploy/write-env-from-ci.sh
     - docker compose -f docker-compose.yml -f docker-compose.server.yml build
-    - docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --remove-orphans
+    - |
+      if ! docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --remove-orphans --wait --wait-timeout 180; then
+        echo ">> postgres logs:"
+        docker compose -f docker-compose.yml -f docker-compose.server.yml logs postgres --no-log-prefix --tail 80 || true
+        docker compose -f docker-compose.yml -f docker-compose.server.yml ps -a || true
+        exit 1
+      fi
     - docker compose -f docker-compose.yml -f docker-compose.server.yml ps
   environment:
     name: production
