@@ -91,7 +91,21 @@ Pipeline сам:
 | `permission denied` docker | На docker-host: `sudo usermod -aG docker gitlab-runner` (один раз при настройке runner) |
 | Сертификат не выдаётся | DNS, проброс портов 80/443, верный `DOMAIN` |
 | 502 Bad Gateway | Дождитесь healthy у postgres; смотрите логи job в GitLab |
+| `No space left on device` | На docker-host закончилось место на диске — см. ниже |
 | CORS | `PUBLIC_URL` должен совпадать с URL в браузере |
+
+### Нет места на диске (`No space left on device`)
+
+PostgreSQL не может создать базу, если на docker-host заполнен диск. Pipeline перед деплоем чистит неиспользуемые образы и кэш сборки, но если диск забит полностью — один раз освободите место на VM `192.168.0.20`:
+
+```bash
+df -h
+docker system df
+docker system prune -af          # удалить неиспользуемые образы/контейнеры (данные FinTracker в volumes сохранятся)
+docker builder prune -af         # очистить кэш сборки
+```
+
+Затем **Retry** pipeline в GitLab.
 
 Логи на docker-host (если понадобится):
 

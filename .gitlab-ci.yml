@@ -26,6 +26,12 @@ deploy:production:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - docker info
+    - df -h
+    - docker system df
+    - docker container prune -f || true
+    - docker image prune -af || true
+    - docker builder prune -af || true
+    - df -h
     - sh deploy/write-env-from-ci.sh
     - docker compose -f docker-compose.yml -f docker-compose.server.yml build
     - |
