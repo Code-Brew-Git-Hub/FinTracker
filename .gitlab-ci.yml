@@ -1,13 +1,13 @@
 # Автодеплой: push в main → runner на docker-host собирает и публикует FinTracker.
-# На сервере ничего настраивать не нужно (runner уже должен быть на docker-host).
+# Runner: docker executor, образ docker:24 (Alpine — без bash, только sh).
 #
 # Один раз в GitLab → Settings → CI/CD → Variables:
 #   DB_PASSWORD        (masked) — пароль PostgreSQL
 #   LETSENCRYPT_EMAIL            — email для Let's Encrypt
 #   DOMAIN             (optional) — по умолчанию fintracker.trydov1k.online
 #   PUBLIC_URL         (optional) — по умолчанию https://$DOMAIN
-#
-# Если у runner есть tag — раскомментируйте секцию tags ниже и укажите свой.
+
+image: docker:24
 
 stages:
   - deploy
@@ -16,6 +16,7 @@ variables:
   COMPOSE_PROJECT_NAME: fintracker
   DOMAIN: "fintracker.trydov1k.online"
   PUBLIC_URL: "https://fintracker.trydov1k.online"
+  DOCKER_TLS_CERTDIR: ""
 
 deploy:production:
   stage: deploy
@@ -24,8 +25,8 @@ deploy:production:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - chmod +x deploy/write-env-from-ci.sh
-    - ./deploy/write-env-from-ci.sh
+    - docker info
+    - sh deploy/write-env-from-ci.sh
     - docker compose -f docker-compose.yml -f docker-compose.server.yml build
     - docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --remove-orphans
     - docker compose -f docker-compose.yml -f docker-compose.server.yml ps

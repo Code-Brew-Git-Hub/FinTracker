@@ -1,16 +1,16 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Создаёт .env для server-деплоя из переменных GitLab CI/CD.
-set -euo pipefail
+set -eu
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 
-if [[ -z "${DB_PASSWORD:-}" ]]; then
+if [ -z "${DB_PASSWORD:-}" ]; then
   echo "ERROR: задайте переменную DB_PASSWORD в GitLab → Settings → CI/CD → Variables"
   exit 1
 fi
 
-if [[ -z "${LETSENCRYPT_EMAIL:-}" ]]; then
+if [ -z "${LETSENCRYPT_EMAIL:-}" ]; then
   echo "ERROR: задайте переменную LETSENCRYPT_EMAIL в GitLab → Settings → CI/CD → Variables"
   exit 1
 fi
