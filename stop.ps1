@@ -9,7 +9,6 @@ param()
 $ErrorActionPreference = "Stop"
 Set-Location -LiteralPath $PSScriptRoot
 
-# Docker writes progress to stderr; PowerShell treats that as a terminating error with Stop.
 function Invoke-DockerSilently([scriptblock]$Command) {
     $prevEAP = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
@@ -21,6 +20,10 @@ function Invoke-DockerSilently([scriptblock]$Command) {
 }
 
 Write-Host ">> Stopping FinTracker" -ForegroundColor Cyan
+
+if (Test-Path -LiteralPath "docker-compose.server.yml") {
+    Invoke-DockerSilently { docker compose -f docker-compose.images.yml -f docker-compose.server.yml down }
+}
 
 if (Test-Path -LiteralPath "docker-compose.images.yml") {
     Invoke-DockerSilently { docker compose -f docker-compose.images.yml down }

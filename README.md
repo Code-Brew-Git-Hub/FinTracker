@@ -83,8 +83,11 @@
 | `FRONTEND_PORT` | Порт сайта в браузере | `8080` |
 | `API_PORT` | Порт API (обычно менять не нужно) | `5009` |
 | `FINTRACKER_VERSION` | Версия программы из релиза | `v0.0.3` или `latest` |
+| `DEPLOY_MODE` | `local` — ПК, `server` — сервер с доменом | `local` |
 
 Шаблон: [.env.example](.env.example)
+
+**Публикация на сервере** (push в GitLab → runner → docker-host): [docs/deployment-server.md](docs/deployment-server.md)
 
 ---
 
@@ -111,6 +114,7 @@
 
 ### Для разработчиков
 
+- [Запуск на сервере](docs/deployment-server.md) — Docker VM, GitLab CI, домен и HTTPS
 - [Синхронизация субрепозиториев](docs/sync-subrepos.md)
 - [Аналитика](docs/analitics) — описание модулей и требований
 
