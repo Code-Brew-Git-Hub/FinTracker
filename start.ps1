@@ -124,9 +124,8 @@ if (-not (Test-Path -LiteralPath ".env")) {
 
 if ($isServer) {
     $domain = Get-EnvValue "DOMAIN"
-    $email = Get-EnvValue "LETSENCRYPT_EMAIL"
-    if ([string]::IsNullOrWhiteSpace($domain) -or [string]::IsNullOrWhiteSpace($email)) {
-        Write-Error "Server mode requires DOMAIN and LETSENCRYPT_EMAIL in .env"
+    if ([string]::IsNullOrWhiteSpace($domain)) {
+        Write-Error "Server mode requires DOMAIN in .env"
     }
 }
 
@@ -161,7 +160,7 @@ if ($Build -and -not $isServer) {
         Write-Error "Could not pull images for server deploy. Check GHCR access and FINTRACKER_VERSION."
     }
 
-    Write-Step "Starting server stack (Caddy + HTTPS)"
+    Write-Step "Starting server stack (npm proxy on port $(Get-EnvValue 'FINTRACKER_HOST_PORT' '8082'))"
     $upResult = Invoke-NativeCommand { docker compose @composeFiles up -d }
     Write-Host $upResult.Output
     $composeExitCode = $upResult.ExitCode
