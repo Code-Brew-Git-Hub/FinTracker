@@ -17,7 +17,7 @@ services:
 
   api:
     build:
-      context: ./FinTracker.Backend
+      context: ../FinTracker.Backend
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
@@ -38,7 +38,7 @@ services:
 
   frontend:
     build:
-      context: ./FinTracker.Frontend
+      context: ../FinTracker.Frontend
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:

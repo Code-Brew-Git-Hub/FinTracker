@@ -4,11 +4,11 @@
   Start FinTracker via Docker Compose (self-hosted).
 
 .PARAMETER Build
-  Build images from source (docker-compose.yml) instead of GHCR images.
+  Build images from source (docker/docker-compose.yml) instead of GHCR images.
 
 .EXAMPLE
-  .\start.ps1
-  .\start.ps1 -Build
+  .\scripts\start.ps1
+  .\scripts\start.ps1 -Build
 #>
 [CmdletBinding()]
 param(
@@ -18,8 +18,14 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$Root = $PSScriptRoot
+$Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location -LiteralPath $Root
+
+$ComposeBuild = "docker/docker-compose.yml"
+$ComposeLocal = "docker/docker-compose.local.yml"
+$ComposeServer = "docker/docker-compose.server.yml"
+$ComposeImages = "docker/docker-compose.images.yml"
+$EnvExample = Join-Path $Root "docker\.env.example"
 
 function Write-Step([string]$Message) {
     Write-Host ">> $Message" -ForegroundColor Cyan
@@ -114,11 +120,11 @@ if ($composeVersion.ExitCode -ne 0) {
 Write-Host $composeVersion.Output
 
 if (-not (Test-Path -LiteralPath ".env")) {
-    Write-Step "Creating .env from .env.example"
-    if (-not (Test-Path -LiteralPath ".env.example")) {
-        Write-Error ".env.example was not found in $Root"
+    Write-Step "Creating .env from docker/.env.example"
+    if (-not (Test-Path -LiteralPath $EnvExample)) {
+        Write-Error "docker/.env.example was not found in $Root"
     }
-    Copy-Item -LiteralPath ".env.example" -Destination ".env"
+    Copy-Item -LiteralPath $EnvExample -Destination ".env"
     Write-Host "Created .env - set DB_PASSWORD and FINTRACKER_VERSION if needed."
 }
 
@@ -138,18 +144,18 @@ $swaggerUrl = if ($isServer) { "$publicUrl/api/swagger" } else { "http://localho
 
 $composeFiles = @()
 if ($isServer) {
-    $composeFiles = @("-f", "docker-compose.images.yml", "-f", "docker-compose.server.yml")
+    $composeFiles = @("-f", $ComposeImages, "-f", $ComposeServer)
 } elseif ($Build) {
-    $composeFiles = @("-f", "docker-compose.yml", "-f", "docker-compose.local.yml")
+    $composeFiles = @("-f", $ComposeBuild, "-f", $ComposeLocal)
 } else {
-    $composeFiles = @("-f", "docker-compose.images.yml", "-f", "docker-compose.local.yml")
+    $composeFiles = @("-f", $ComposeImages, "-f", $ComposeLocal)
 }
 
 $composeExitCode = 0
 
 if ($Build -and -not $isServer) {
     Write-Step "Starting with local build"
-    $upResult = Invoke-NativeCommand { docker compose -f docker-compose.yml -f docker-compose.local.yml up --build -d }
+    $upResult = Invoke-NativeCommand { docker compose -f $ComposeBuild -f $ComposeLocal up --build -d }
     Write-Host $upResult.Output
     $composeExitCode = $upResult.ExitCode
 } elseif ($isServer) {
@@ -168,7 +174,7 @@ if ($Build -and -not $isServer) {
     $useLocalBuild = $false
 
     Write-Step "Pulling images from GHCR"
-    $pullResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml -f docker-compose.local.yml pull }
+    $pullResult = Invoke-NativeCommand { docker compose -f $ComposeImages -f $ComposeLocal pull }
     Write-Host $pullResult.Output
 
     if ($pullResult.ExitCode -ne 0) {
@@ -193,13 +199,13 @@ Falling back to local build from source (first run may take 5-15 min).
 
     if ($useLocalBuild) {
         Write-Step "Starting with local build (fallback)"
-        $upResult = Invoke-NativeCommand { docker compose -f docker-compose.yml -f docker-compose.local.yml up --build -d }
+        $upResult = Invoke-NativeCommand { docker compose -f $ComposeBuild -f $ComposeLocal up --build -d }
         Write-Host $upResult.Output
         $composeExitCode = $upResult.ExitCode
         $Build = $true
     } else {
         Write-Step "Starting containers"
-        $upResult = Invoke-NativeCommand { docker compose -f docker-compose.images.yml -f docker-compose.local.yml up -d }
+        $upResult = Invoke-NativeCommand { docker compose -f $ComposeImages -f $ComposeLocal up -d }
         Write-Host $upResult.Output
         $composeExitCode = $upResult.ExitCode
     }
@@ -211,7 +217,7 @@ if ($composeExitCode -ne 0) {
 
 Write-Step "Container status"
 if ($Build -and -not $isServer) {
-    $psResult = Invoke-NativeCommand { docker compose -f docker-compose.yml -f docker-compose.local.yml ps }
+    $psResult = Invoke-NativeCommand { docker compose -f $ComposeBuild -f $ComposeLocal ps }
 } else {
     $psResult = Invoke-NativeCommand { docker compose @composeFiles ps }
 }
@@ -225,7 +231,7 @@ if (-not $isServer) {
     Write-Host "  Swagger:  $swaggerUrl"
 }
 Write-Host ""
-Write-Host "Stop: .\stop.ps1  or  docker compose down"
+Write-Host "Stop: .\stop.bat"
 
 if (-not $isServer) {
     Write-Step "Opening browser"

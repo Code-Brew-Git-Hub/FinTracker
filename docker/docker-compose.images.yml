@@ -1,9 +1,9 @@
 # Self-hosted: готовые образы из GitHub Container Registry (без локальной сборки).
 # См. docs/docker.md и GitHub Releases.
 #
-#   cp .env.example .env
-#   docker compose -f docker-compose.images.yml pull
-#   docker compose -f docker-compose.images.yml up -d
+#   cp docker/.env.example .env
+#   docker compose -f docker/docker-compose.images.yml pull
+#   docker compose -f docker/docker-compose.images.yml up -d
 
 services:
   postgres:

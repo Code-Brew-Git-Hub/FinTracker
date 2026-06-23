@@ -47,9 +47,9 @@ start.bat
 **Вручную (если нужно):**
 
 ```bash
-cp .env.example .env
-docker compose -f docker-compose.images.yml pull
-docker compose -f docker-compose.images.yml up -d
+cp docker/.env.example .env
+docker compose -f docker/docker-compose.images.yml pull
+docker compose -f docker/docker-compose.images.yml up -d
 ```
 
 ### Обновление
@@ -64,7 +64,7 @@ docker compose -f docker-compose.images.yml up -d
 Образы на GitHub могут быть недоступны без входа. Запустите сборку на своём ПК:
 
 ```powershell
-.\start.ps1 -Build
+.\scripts\start.ps1 -Build
 ```
 
 ---

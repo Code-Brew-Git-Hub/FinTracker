@@ -29,21 +29,21 @@ deploy:production:
     - docker container prune -f || true
     - docker builder prune -af || true
     - sh deploy/write-env-from-ci.sh
-    - docker compose -f docker-compose.yml -f docker-compose.server.yml build
-    - docker compose -f docker-compose.yml -f docker-compose.server.yml down --remove-orphans || true
+    - docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml build
+    - docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml down --remove-orphans || true
     - |
-      if ! docker compose -f docker-compose.yml -f docker-compose.server.yml up -d --remove-orphans --wait --wait-timeout 180; then
+      if ! docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml up -d --remove-orphans --wait --wait-timeout 180; then
         echo ">> service logs:"
-        docker compose -f docker-compose.yml -f docker-compose.server.yml logs --no-log-prefix --tail 80 || true
-        docker compose -f docker-compose.yml -f docker-compose.server.yml ps -a || true
+        docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml logs --no-log-prefix --tail 80 || true
+        docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml ps -a || true
         exit 1
       fi
-    - docker compose -f docker-compose.yml -f docker-compose.server.yml ps
+    - docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml ps
     - |
       PORT="${FINTRACKER_HOST_PORT:-8082}"
-      if ! docker compose -f docker-compose.yml -f docker-compose.server.yml ps | grep -E "${PORT}->80/tcp"; then
+      if ! docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml ps | grep -E "${PORT}->80/tcp"; then
         echo "ERROR: frontend port ${PORT} is not published on the host"
-        docker compose -f docker-compose.yml -f docker-compose.server.yml config
+        docker compose -f docker/docker-compose.yml -f docker/docker-compose.server.yml config
         exit 1
       fi
       echo ">> frontend is published on port ${PORT}"

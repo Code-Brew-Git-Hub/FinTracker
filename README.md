@@ -64,7 +64,7 @@
 | Проблема | Решение |
 |----------|---------|
 | **`start.bat` сразу закрывается или пишет ошибку** | Убедитесь, что Docker Desktop запущен. Запустите **`start.bat`** ещё раз и прочитайте текст в окне. |
-| **`unauthorized` при скачивании образов** | Запустите в PowerShell: `.\start.ps1 -Build` (сборка на вашем ПК, без скачивания с GitHub). |
+| **`unauthorized` при скачивании образов** | Запустите в PowerShell: `.\scripts\start.ps1 -Build` (сборка на вашем ПК, без скачивания с GitHub). |
 | **Сайт не открывается** | Подождите 1–2 минуты после запуска. Проверьте http://localhost:8080 вручную. |
 | **Порт 8080 занят** | Откройте `.env`, измените `FRONTEND_PORT=8081`, сохраните, запустите **`start.bat`** снова. Открывайте http://localhost:8081 |
 | **Нужно всё сбросить и начать заново** | См. раздел «Полный сброс» в [docs/docker-for-beginners.md](docs/docker-for-beginners.md) |
@@ -85,7 +85,7 @@
 | `FINTRACKER_VERSION` | Версия программы из релиза | `v0.0.3` или `latest` |
 | `DEPLOY_MODE` | `local` — ПК, `server` — сервер с доменом | `local` |
 
-Шаблон: [.env.example](.env.example)
+Шаблон: [docker/.env.example](docker/.env.example) (копируется в `.env` при первом запуске)
 
 **Публикация на сервере** (push в GitLab → runner → docker-host): [docs/deployment-server.md](docs/deployment-server.md)
 
@@ -96,6 +96,8 @@
 | Папка / файл | Назначение |
 |--------------|------------|
 | `start.bat`, `stop.bat` | Запуск и остановка одним щелчком |
+| `docker/` | Настройки Docker (обычно не трогать) |
+| `scripts/` | Скрипты запуска для PowerShell |
 | `FinTracker.Frontend` | Интерфейс (страницы в браузере) |
 | `FinTracker.Backend` | Серверная часть и логика |
 | `docs` | Документация |
