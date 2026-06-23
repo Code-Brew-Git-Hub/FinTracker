@@ -80,19 +80,20 @@ deploy:
     - export COMPOSE_PROJECT_NAME=fintracker
     - |
       cat > .env <<EOF
-      DB_NAME=${DB_NAME}
-      DB_USER=${DB_USER}
-      DB_PASSWORD=${DB_PASSWORD}
-      API_PORT=${API_PORT}
-      FRONTEND_PORT=${FRONTEND_PORT}
-      API_URL=${API_URL}
-      FRONTEND_URL=${FRONTEND_URL}
+      DB_NAME=${DB_NAME:-FinTrackerDb}
+      DB_USER=${DB_USER:-postgres}
+      DB_PASSWORD=${DB_PASSWORD:-fintracker}
+      API_PORT=${API_PORT:-5009}
+      FRONTEND_PORT=${FRONTEND_PORT:-8082}
+      API_URL=${API_URL:-http://localhost:5009/api}
+      FRONTEND_URL=${FRONTEND_URL:-http://localhost:8082}
       REGISTRY_IMAGE=${REGISTRY_IMAGE}
       FINTRACKER_VERSION=${FINTRACKER_VERSION}
       EOF
     - docker compose -f docker-compose.deploy.yml pull
-    - docker compose -f docker-compose.deploy.yml up -d --remove-orphans
+    - docker compose -f docker-compose.deploy.yml up -d --remove-orphans --force-recreate
     - docker compose -f docker-compose.deploy.yml ps
+    - docker port fintracker-api-1 8080 || (echo "API port is not published" && exit 1)
   environment:
     name: fintracker
     url: $FRONTEND_URL
