@@ -93,8 +93,16 @@ deploy:
     - docker compose -f docker-compose.deploy.yml pull
     - docker compose -f docker-compose.deploy.yml up -d --remove-orphans --force-recreate
     - docker compose -f docker-compose.deploy.yml ps
-    - sleep 5
-    - docker compose -f docker-compose.deploy.yml exec -T frontend wget -q --spider http://127.0.0.1/api/import/presets || (echo "API proxy check failed" && exit 1)
+    - |
+      for i in $(seq 1 30); do
+        if docker compose -f docker-compose.deploy.yml exec -T frontend wget -q --spider http://127.0.0.1/api/import/presets; then
+          exit 0
+        fi
+        sleep 2
+      done
+      echo "API proxy check failed"
+      docker compose -f docker-compose.deploy.yml logs api --tail 50
+      exit 1
   environment:
     name: fintracker
     url: $FRONTEND_URL
