@@ -1,27 +1,28 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT=$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT"
 
-if [[ ! -f .env ]]; then
+if [ ! -f .env ]; then
   echo ">> Creating .env from .env.example"
   cp .env.example .env
-  echo "Edit .env: set DEPLOY_MODE=server, DOMAIN, LETSENCRYPT_EMAIL, DB_PASSWORD"
+  echo "Edit .env: set DEPLOY_MODE=server, DOMAIN, DB_PASSWORD"
   exit 1
 fi
 
 # shellcheck disable=SC1091
-source <(grep -E '^\s*[A-Za-z_][A-Za-z0-9_]*=' .env | sed 's/^\s*//')
+set -a
+. ./.env
+set +a
 
-DEPLOY_MODE="${DEPLOY_MODE:-local}"
-if [[ "$DEPLOY_MODE" != "server" ]]; then
-  echo "DEPLOY_MODE must be 'server' in .env (current: $DEPLOY_MODE)"
+if [ "${DEPLOY_MODE:-local}" != "server" ]; then
+  echo "DEPLOY_MODE must be 'server' in .env"
   exit 1
 fi
 
-if [[ -z "${DOMAIN:-}" || -z "${LETSENCRYPT_EMAIL:-}" ]]; then
-  echo "Set DOMAIN and LETSENCRYPT_EMAIL in .env"
+if [ -z "${DOMAIN:-}" ]; then
+  echo "Set DOMAIN in .env"
   exit 1
 fi
 
@@ -32,7 +33,8 @@ echo ">> Starting FinTracker (server)"
 docker compose -f docker-compose.images.yml -f docker-compose.server.yml up -d
 
 PUBLIC_URL="${PUBLIC_URL:-https://${DOMAIN}}"
+PORT="${FINTRACKER_HOST_PORT:-8082}"
 echo ""
-echo "FinTracker is running."
-echo "  Site: $PUBLIC_URL"
+echo "FinTracker is running on http://localhost:${PORT}"
+echo "Configure Nginx Proxy Manager → ${PUBLIC_URL}"
 echo "Stop: docker compose -f docker-compose.images.yml -f docker-compose.server.yml down"

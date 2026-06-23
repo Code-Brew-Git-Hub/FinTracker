@@ -1,85 +1,65 @@
 # Публикация FinTracker на сервере (только через GitLab)
 
-Деплой **полностью автоматический**: вы пушите код в GitLab → runner на docker-host собирает образы и публикует сайт. **SSH на сервер не нужен.**
+Деплой **полностью автоматический**: push в GitLab → runner на docker-host собирает и публикует FinTracker.
 
-Локальный запуск на ПК (`start.bat`) не меняется — в `.env` на ПК оставьте `DEPLOY_MODE=local`.
+На docker-host у вас уже есть **Nginx Proxy Manager (npm)** на портах 80/443 и **cadvisor** на 8080 — FinTracker использует порт **8082** и проксируется через npm.
 
 ---
 
 ## Схема
 
 ```
-git push (main)
-      │
-      ▼
-GitLab (192.168.0.21) — pipeline
-      │
-      ▼
-Runner на docker-host (192.168.0.20)
-  · checkout кода
-  · создание .env из CI Variables
-  · docker compose build && up
-      │
-      ▼
-https://fintracker.trydov1k.online
+git push (main) → GitLab CI → docker-host
+                                  │
+                    fintracker-frontend :8082
+                                  │
+                    Nginx Proxy Manager :443
+                                  │
+                    https://fintracker.trydov1k.online
 ```
 
 ---
 
-## Что нужно сделать один раз
+## Один раз
 
-### 1. DNS (панель домена trydov1k.online)
+### 1. DNS
 
 | Тип | Имя | Значение |
 |-----|-----|----------|
-| A | `fintracker` | IP docker-host (`192.168.0.20` или внешний IP с пробросом 80/443) |
+| A | `fintracker` | IP docker-host (`192.168.0.20` или внешний) |
 
-### 2. Переменные в GitLab
+### 2. GitLab CI/CD Variables
 
-Проект → **Settings → CI/CD → Variables**:
+| Переменная | Обязательна | Пример |
+|------------|-------------|--------|
+| `DB_PASSWORD` | да | надёжный пароль |
+| `DOMAIN` | нет | `fintracker.trydov1k.online` |
+| `PUBLIC_URL` | нет | `https://fintracker.trydov1k.online` |
+| `FINTRACKER_HOST_PORT` | нет | `8082` (не 8080 — занят cadvisor) |
 
-| Переменная | Обязательна | Masked | Пример |
-|------------|-------------|--------|--------|
-| `DB_PASSWORD` | да | да | надёжный пароль |
-| `LETSENCRYPT_EMAIL` | да | нет | you@mail.com |
-| `DOMAIN` | нет | нет | `fintracker.trydov1k.online` |
-| `PUBLIC_URL` | нет | нет | `https://fintracker.trydov1k.online` |
+### 3. Nginx Proxy Manager (один раз в веб-интерфейсе npm)
 
-Значения по умолчанию для `DOMAIN` и `PUBLIC_URL` уже заданы в [`.gitlab-ci.yml`](../.gitlab-ci.yml).
+**Hosts → Proxy Hosts → Add Proxy Host:**
 
-### 3. Runner
+| Поле | Значение |
+|------|----------|
+| Domain Names | `fintracker.trydov1k.online` |
+| Scheme | `http` |
+| Forward Hostname / IP | `192.168.0.20` (IP docker-host) |
+| Forward Port | `8082` |
+| SSL | Request a new SSL Certificate (Let's Encrypt) |
 
-Runner должен быть на **docker-host** и уметь вызывать `docker compose` (обычно executor **shell**, пользователь `gitlab-runner` в группе `docker`).
-
-Если у runner задан **tag**, раскомментируйте `tags` в `.gitlab-ci.yml` и укажите свой tag.
+Сохраните. HTTPS настраивается в npm, не в FinTracker.
 
 ---
 
 ## Ежедневная работа
 
 ```bash
-git add .
-git commit -m "..."
 git push origin main
 ```
 
-Pipeline сам:
-
-1. Создаст `.env` из переменных GitLab
-2. Соберёт образы api и frontend из исходников
-3. Поднимет postgres + api + frontend + caddy (HTTPS)
-
-Сайт: **https://fintracker.trydov1k.online**
-
----
-
-## Локальный ПК vs сервер
-
-| | ПК (Windows) | Сервер |
-|---|--------------|--------|
-| Запуск | `start.bat` | `git push` в `main` |
-| Настройки | `.env` в папке проекта | GitLab CI/CD Variables |
-| URL | http://localhost:8080 | https://fintracker.trydov1k.online |
+Pipeline соберёт образы и поднимет контейнеры. Сайт: **https://fintracker.trydov1k.online**
 
 ---
 
@@ -87,36 +67,14 @@ Pipeline сам:
 
 | Проблема | Решение |
 |----------|---------|
-| Job не стартует | Проверьте, что runner online и tag в `.gitlab-ci.yml` совпадает |
-| `permission denied` docker | На docker-host: `sudo usermod -aG docker gitlab-runner` (один раз при настройке runner) |
-| Сертификат не выдаётся | DNS, проброс портов 80/443, верный `DOMAIN` |
-| 502 Bad Gateway | Дождитесь healthy у postgres; смотрите логи job в GitLab |
-| `No space left on device` | На docker-host закончилось место на диске — см. ниже |
-| CORS | `PUBLIC_URL` должен совпадать с URL в браузере |
+| `port is already allocated` | Порт 8080 занят (cadvisor). Используйте `FINTRACKER_HOST_PORT=8082` |
+| 502 в npm | Проверьте, что `fintracker-frontend` running и порт 8082 отвечает: `curl http://192.168.0.20:8082` |
+| CORS | `PUBLIC_URL` в GitLab Variables = URL в браузере |
+| `No space left on device` | `docker system prune -af && docker builder prune -af` на docker-host, затем Retry |
+| postgres unhealthy | Смотрите логи job; при нехватке диска — очистка Docker |
 
-### Нет места на диске (`No space left on device`)
-
-PostgreSQL не может создать базу, если на docker-host заполнен диск. Pipeline перед деплоем чистит неиспользуемые образы и кэш сборки, но если диск забит полностью — один раз освободите место на VM `192.168.0.20`:
-
-```bash
-df -h
-docker system df
-docker system prune -af          # удалить неиспользуемые образы/контейнеры (данные FinTracker в volumes сохранятся)
-docker builder prune -af         # очистить кэш сборки
-```
-
-Затем **Retry** pipeline в GitLab.
-
-Логи на docker-host (если понадобится):
+Логи:
 
 ```bash
 docker compose -p fintracker -f docker-compose.yml -f docker-compose.server.yml logs -f
 ```
-
----
-
-## Безопасность
-
-- Не коммитьте `.env` и пароли в git
-- `DB_PASSWORD` храните только в GitLab Variables (masked)
-- API снаружи не публикуется — только `/api` через frontend
