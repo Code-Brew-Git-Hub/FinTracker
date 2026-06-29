@@ -1,13 +1,17 @@
-﻿using FinTracker.Data.Repositories;
+﻿using FinTracker.Domain.Dtos.Scopes;
+using FinTracker.Domain.Dtos.Transactions;
 using FinTracker.Domain.Interfaces.Repositories;
+using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
+using MapsterMapper;
 
 namespace FinTracker.Data.Services;
 
 public class ScopeService(IScopeRepository scopeRepository,
-    ITransactionRepository transactionRepository) : IScopeService
+    ITransactionRepository transactionRepository,
+    IMapper mapper) : IScopeService
 {
-    public async Task<Scope> CreateAsync(string name)
+    public async Task<ScopeDto> CreateAsync(string name)
     {
         var existing = await scopeRepository.GetByNameAsync(name);
         if (existing != null)
@@ -22,7 +26,7 @@ public class ScopeService(IScopeRepository scopeRepository,
         await scopeRepository.AddAsync(newScope);
         await scopeRepository.SaveChangesAsync();
 
-        return newScope;
+        return mapper.Map<ScopeDto>(newScope);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -31,24 +35,28 @@ public class ScopeService(IScopeRepository scopeRepository,
         await scopeRepository.SaveChangesAsync();
     }
 
-    public async Task<List<Scope>> GetAllAsync()
+    public async Task<List<ScopeDto>> GetAllAsync()
     {
-        return await scopeRepository.GetAllAsync();
+        var scopes = await scopeRepository.GetAllAsync();
+        return mapper.Map<List<ScopeDto>>(scopes);
     }
 
-    public async Task<Scope> GetByIdAsync(Guid id)
+    public async Task<ScopeDto> GetByIdAsync(Guid id)
     {
-        return await scopeRepository.EnsureExistsAsync(id);
+        var scope = await scopeRepository.EnsureExistsAsync(id);
+        return mapper.Map<ScopeDto>(scope);
     }
 
-    public async Task<List<Transaction>> GetTransactionsAsync(Guid scopeId)
+    public async Task<List<TransactionDto>> GetTransactionsAsync(Guid scopeId)
     {
         var scope = await scopeRepository.EnsureExistsAsync(scopeId);
 
-        return await transactionRepository.GetByScopeIdAsync(scopeId);
+        var transactions = await transactionRepository.GetByScopeIdAsync(scopeId);
+
+        return mapper.Map<List<TransactionDto>>(transactions);
     }
 
-    public async Task<Scope> UpdateAsync(Guid id, string name)
+    public async Task<ScopeDto> UpdateAsync(Guid id, string name)
     {
         var scope = await scopeRepository.EnsureExistsAsync(id);
 
@@ -57,6 +65,6 @@ public class ScopeService(IScopeRepository scopeRepository,
         await scopeRepository.UpdateAsync(scope);
         await scopeRepository.SaveChangesAsync();
 
-        return scope;
+        return mapper.Map<ScopeDto>(scope);
     }
 }

@@ -5,9 +5,9 @@ namespace FinTracker.Domain.Interfaces.Services;
 
 public interface ILinkService
 {
-    Task<TransactionLink> GetByIdAsync(Guid id);
-    Task<TransactionLink> CreateAsync(CreateTransactionLinkDto dto);
-    Task<TransactionLink> AddTransactionAsync(Guid linkId, Guid transactionId);
+    Task<TransactionLinkDto> GetByIdAsync(Guid id);
+    Task<TransactionLinkDto> CreateAsync(CreateTransactionLinkDto dto);
+    Task<TransactionLinkDto> AddTransactionAsync(Guid linkId, Guid transactionId);
     Task RemoveTransactionAsync(Guid linkId, Guid transactionId);
     Task DeleteAsync(Guid id);
 }

@@ -1,24 +1,20 @@
 ﻿using FinTracker.Domain.Dtos.Categories;
 using FinTracker.Domain.Dtos.Universal;
 using FinTracker.Domain.Interfaces.Services;
-using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinTracker.API.Controllers;
 
 [ApiController]
 [Route("api/categories")]
-public class CategoriesController(ICategoryService categoryService,
-    IMapper mapper) : ControllerBase
+public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<CategoryDto[]>>> GetAll()
+    public async Task<ActionResult<ApiResponse<List<CategoryDto>>>> GetAll()
     {
         var categories = await categoryService.GetAllAsync();
 
-        var dto = mapper.Map<CategoryDto[]>(categories);
-
-        return Ok(ApiResponse.Ok(dto));
+        return Ok(ApiResponse.Ok(categories));
     }
 
     [HttpGet("{id:guid}")]
@@ -26,9 +22,7 @@ public class CategoriesController(ICategoryService categoryService,
     {
         var category = await categoryService.GetByIdAsync(id);
 
-        var dto = mapper.Map<CategoryDto>(category);
-
-        return Ok(ApiResponse.Ok(dto));
+        return Ok(ApiResponse.Ok(category));
     }
 
     [HttpPost]
@@ -36,9 +30,7 @@ public class CategoriesController(ICategoryService categoryService,
     {
         var createdCategory = await categoryService.CreateAsync(dto.Name);
 
-        var catDto = mapper.Map<CategoryDto>(createdCategory);
-
-        return Ok(ApiResponse.Ok(catDto));
+        return Ok(ApiResponse.Ok(createdCategory));
     }
 
     [HttpPut("{id:guid}")]
@@ -47,9 +39,7 @@ public class CategoriesController(ICategoryService categoryService,
 
         var updatedCategory = await categoryService.UpdateAsync(id, dto.Name);
 
-        var catDto = mapper.Map<CategoryDto>(updatedCategory);
-
-        return Ok(ApiResponse.Ok(catDto));
+        return Ok(ApiResponse.Ok(updatedCategory));
     }
 
     [HttpDelete("{id:guid}")]

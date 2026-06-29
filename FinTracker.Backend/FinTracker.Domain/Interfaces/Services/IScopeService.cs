@@ -1,13 +1,14 @@
-﻿using FinTracker.Domain.Models;
+﻿using FinTracker.Domain.Dtos.Scopes;
+using FinTracker.Domain.Dtos.Transactions;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Domain.Interfaces.Services;
 
 public interface IScopeService
 {
-    Task<List<Scope>> GetAllAsync();
-    Task<Scope> GetByIdAsync(Guid id);
-    Task<Scope> CreateAsync(string name);
-    Task<Scope> UpdateAsync(Guid id, string name);
+    Task<List<ScopeDto>> GetAllAsync();
+    Task<ScopeDto> GetByIdAsync(Guid id);
+    Task<ScopeDto> CreateAsync(string name);
+    Task<ScopeDto> UpdateAsync(Guid id, string name);
     Task DeleteAsync(Guid id);
-    Task<List<Transaction>> GetTransactionsAsync(Guid scopeId);
+    Task<List<TransactionDto>> GetTransactionsAsync(Guid scopeId);
 }

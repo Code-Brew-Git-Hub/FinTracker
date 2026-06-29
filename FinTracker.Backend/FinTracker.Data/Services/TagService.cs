@@ -1,13 +1,16 @@
 ﻿
+using FinTracker.Domain.Dtos.Tags;
 using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
+using MapsterMapper;
 
 namespace FinTracker.Data.Services;
 
-public class TagService(ITagRepository tagRepository) : ITagService
+public class TagService(ITagRepository tagRepository,
+    IMapper mapper) : ITagService
 {
-    public async Task<Tag> CreateAsync(string name)
+    public async Task<TagDto> CreateAsync(string name)
     {
         var existing = await tagRepository.GetByNamesAsync([name]);
         if (existing.Any())
@@ -22,7 +25,7 @@ public class TagService(ITagRepository tagRepository) : ITagService
         await tagRepository.AddAsync(tag);
         await tagRepository.SaveChangesAsync();
 
-        return tag;
+        return mapper.Map<TagDto>(tag);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -31,8 +34,10 @@ public class TagService(ITagRepository tagRepository) : ITagService
         await tagRepository.SaveChangesAsync();
     }
 
-    public async Task<List<Tag>> GetAllAsync()
+    public async Task<List<TagDto>> GetAllAsync()
     {
-        return await tagRepository.GetAllAsync();
+        var tags = await tagRepository.GetAllAsync();
+
+        return mapper.Map<List<TagDto>>(tags);
     }
 }

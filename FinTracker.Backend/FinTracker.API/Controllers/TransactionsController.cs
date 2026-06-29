@@ -1,16 +1,14 @@
-﻿using FinTracker.Data.Services;
-using FinTracker.Domain.Dtos.Transactions;
+﻿using FinTracker.Domain.Dtos.Transactions;
 using FinTracker.Domain.Dtos.Universal;
+using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models.ModelsToHelp;
-using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinTracker.API.Controllers;
 
 [ApiController]
 [Route("api/transactions")]
-public class TransactionsController(ITransactionService transactionService,
-    IMapper mapper) : ControllerBase
+public class TransactionsController(ITransactionService transactionService) : ControllerBase
 {
 
     /// <summary>
@@ -23,13 +21,7 @@ public class TransactionsController(ITransactionService transactionService,
     {
         var result = await transactionService.GetFilteredAsync(filter, includeDeleted);
 
-        return Ok(ApiResponse.Ok(new PagedResponse<TransactionDto>
-        {
-            Items = mapper.Map<List<TransactionDto>>(result.Items),
-            Total = result.Total,
-            Page = result.Page,
-            PageSize = result.PageSize
-        }));
+        return Ok(ApiResponse.Ok(result));
     }
 
     [HttpGet("{id:guid}")]
@@ -37,9 +29,7 @@ public class TransactionsController(ITransactionService transactionService,
     {
         var transaction = await transactionService.GetByIdAsync(id, includeDeleted);
 
-        var transactionDto = mapper.Map<TransactionDto>(transaction);
-
-        return Ok(ApiResponse.Ok(transactionDto));
+        return Ok(ApiResponse.Ok(transaction));
     }
 
     [HttpPost]
@@ -47,9 +37,7 @@ public class TransactionsController(ITransactionService transactionService,
     {
         var createdTransaction = await transactionService.CreateAsync(dto);
 
-        var createdTransactionDto = mapper.Map<TransactionDto>(createdTransaction);
-
-        return Ok(ApiResponse.Ok(createdTransactionDto));
+        return Ok(ApiResponse.Ok(createdTransaction));
     }
 
     [HttpPut("{id:guid}")]
@@ -57,9 +45,7 @@ public class TransactionsController(ITransactionService transactionService,
     {
         var updatedTransaction = await transactionService.UpdateAsync(id, dto);
 
-        var updatedTransactionDto = mapper.Map<TransactionDto>(updatedTransaction);
-
-        return Ok(ApiResponse.Ok(updatedTransactionDto));
+        return Ok(ApiResponse.Ok(updatedTransaction));
     }
 
     [HttpDelete("{id:guid}")]

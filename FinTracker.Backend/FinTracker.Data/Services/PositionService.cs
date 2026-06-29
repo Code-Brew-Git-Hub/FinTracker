@@ -2,12 +2,15 @@
 using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
+using MapsterMapper;
 
 namespace FinTracker.Data.Services;
 
-public class PositionService(IPositionRepository itemRepository, ITransactionRepository transactionRepository) : IPositionService
+public class PositionService(IPositionRepository itemRepository,
+    ITransactionRepository transactionRepository,
+    IMapper mapper) : IPositionService
 {
-    public async Task<Position> CreateAsync(Guid transactionId, CreatePositionDto dto)
+    public async Task<PositionDto> CreateAsync(Guid transactionId, CreatePositionDto dto)
     {
         _ = await transactionRepository.EnsureExistsAsync(transactionId);
 
@@ -25,7 +28,7 @@ public class PositionService(IPositionRepository itemRepository, ITransactionRep
         await itemRepository.AddAsync(item);
         await itemRepository.SaveChangesAsync();
 
-        return item;
+        return mapper.Map<PositionDto>(item);
     }
 
     public async Task DeleteAsync(Guid transactionId, Guid itemId)
@@ -39,14 +42,15 @@ public class PositionService(IPositionRepository itemRepository, ITransactionRep
         await itemRepository.SaveChangesAsync();
     }
 
-    public async Task<List<Position>> GetAllAsync(Guid transactionId)
+    public async Task<List<PositionDto>> GetAllAsync(Guid transactionId)
     {
         _ = await transactionRepository.EnsureExistsAsync(transactionId);
 
-        return await itemRepository.GetAllByTransactionIdAsync(transactionId);
+        var position = await itemRepository.GetAllByTransactionIdAsync(transactionId);
+        return mapper.Map<List<PositionDto>>(position);
     }
 
-    public async Task<Position> UpdateAsync(Guid transactionId, Guid itemId, UpdatePositionDto dto)
+    public async Task<PositionDto> UpdateAsync(Guid transactionId, Guid itemId, UpdatePositionDto dto)
     {
         _ = await transactionRepository.EnsureExistsAsync(transactionId);
 
@@ -61,7 +65,6 @@ public class PositionService(IPositionRepository itemRepository, ITransactionRep
 
         if (dto.Amount != null)
         {
-            //await ValidateTotalAmount(transactionId, dto.Amount.Value, excludeItemId: itemId);
             item.Amount = dto.Amount.Value;
         }
 
@@ -71,6 +74,6 @@ public class PositionService(IPositionRepository itemRepository, ITransactionRep
         await itemRepository.UpdateAsync(item);
         await itemRepository.SaveChangesAsync();
 
-        return item;
+        return mapper.Map<PositionDto>(item);
     }
 }

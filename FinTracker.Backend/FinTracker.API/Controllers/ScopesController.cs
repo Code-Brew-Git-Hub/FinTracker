@@ -4,22 +4,20 @@ using FinTracker.Domain.Dtos.Universal;
 using FinTracker.Domain.Dtos.Scopes;
 using MapsterMapper;
 using FinTracker.Domain.Dtos.Transactions;
+using FinTracker.Domain.Interfaces.Services;
 
 namespace FinTracker.API.Controllers;
 
 [ApiController]
 [Route("/api/scopes")]
-public class ScopesController(IScopeService scopeService,
-    IMapper mapper) : ControllerBase
+public class ScopesController(IScopeService scopeService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<ApiResponse<ScopeDto[]>>> GetAll()
     {
         var scopes = await scopeService.GetAllAsync();
 
-        var scopesDto = mapper.Map<ScopeDto[]>(scopes);
-
-        return Ok(ApiResponse.Ok(scopesDto));
+        return Ok(ApiResponse.Ok(scopes));
     }
 
     [HttpGet("{id:guid}")]
@@ -27,9 +25,7 @@ public class ScopesController(IScopeService scopeService,
     {
         var scope = await scopeService.GetByIdAsync(id);
 
-        var scopeDto = mapper.Map<ScopeDto>(scope);
-
-        return Ok(ApiResponse.Ok(scopeDto));
+        return Ok(ApiResponse.Ok(scope));
     }
 
     [HttpPost]
@@ -37,9 +33,7 @@ public class ScopesController(IScopeService scopeService,
     {
         var createdScope = await scopeService.CreateAsync(dto.Name);
 
-        var createdScopeDto = mapper.Map<ScopeDto>(createdScope);
-
-        return Ok(ApiResponse.Ok(createdScopeDto));
+        return Ok(ApiResponse.Ok(createdScope));
     }
 
     [HttpPut("{id:guid}")]
@@ -47,9 +41,7 @@ public class ScopesController(IScopeService scopeService,
     {
         var updatedScope = await scopeService.UpdateAsync(id, dto.Name);
 
-        var updatedScopeDto = mapper.Map<ScopeDto>(updatedScope);
-
-        return Ok(ApiResponse.Ok(updatedScopeDto));
+        return Ok(ApiResponse.Ok(updatedScope));
     }
 
     [HttpDelete("{id:guid}")]
@@ -65,8 +57,6 @@ public class ScopesController(IScopeService scopeService,
     {
         var transactions = await scopeService.GetTransactionsAsync(scopeId);
 
-        var transactionsDto = mapper.Map<TransactionDto[]>(transactions);
-
-        return Ok(ApiResponse.Ok(transactionsDto));
+        return Ok(ApiResponse.Ok(transactions));
     }
 }

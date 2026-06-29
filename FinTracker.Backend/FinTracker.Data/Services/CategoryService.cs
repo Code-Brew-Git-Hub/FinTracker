@@ -1,15 +1,18 @@
-﻿using FinTracker.Domain.Interfaces.Repositories;
+﻿using FinTracker.Domain.Dtos.Categories;
+using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
+using MapsterMapper;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace FinTracker.Data.Services;
 
 public class CategoryService(
     ICategoryRepository categoryRepository,
-    IMemoryCache memoryCache) : ICategoryService
+    IMemoryCache memoryCache,
+    IMapper mapper) : ICategoryService
 {
-    public async Task<Category> CreateAsync(string name)
+    public async Task<CategoryDto> CreateAsync(string name)
     {
         var newCategory = new Category()
         {
@@ -20,7 +23,7 @@ public class CategoryService(
         await categoryRepository.AddAsync(newCategory);
         await categoryRepository.SaveChangesAsync();
 
-        return newCategory;
+        return mapper.Map<CategoryDto>(newCategory);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -34,29 +37,31 @@ public class CategoryService(
         await categoryRepository.SaveChangesAsync();
     }
 
-    public async Task<List<Category>> GetAllAsync()
+    public async Task<List<CategoryDto>> GetAllAsync()
     {
-        return await categoryRepository.GetAllAsync();
+        var categories = await categoryRepository.GetAllAsync();
+        return mapper.Map<List<CategoryDto>>(categories);
     }
 
-    public async Task<Category> GetByIdAsync(Guid id)
+    public async Task<CategoryDto> GetByIdAsync(Guid id)
     {
-        return await categoryRepository.EnsureExistsAsync(id);
+        var category = await categoryRepository.EnsureExistsAsync(id);
+        return mapper.Map<CategoryDto>(category);
     }
 
-    public async Task<Category> UpdateAsync(Guid id, string name)
+    public async Task<CategoryDto> UpdateAsync(Guid id, string name)
     {
-        var entity = await categoryRepository.EnsureExistsAsync(id);
+        var oldCategory = await categoryRepository.EnsureExistsAsync(id);
 
-        var oldName = entity.Name;
+        var oldName = oldCategory.Name;
 
-        entity.Name = name;
-        await categoryRepository.UpdateAsync(entity);
+        oldCategory.Name = name;
+        await categoryRepository.UpdateAsync(oldCategory);
         await categoryRepository.SaveChangesAsync();
 
         memoryCache.Remove(oldName);
         memoryCache.Remove(name);
 
-        return entity;
+        return mapper.Map<CategoryDto>(oldCategory);
     }
 }
