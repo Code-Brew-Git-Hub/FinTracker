@@ -2,12 +2,15 @@
 using FinTracker.Domain.Dtos.Universal;
 using FinTracker.Domain.Enums;
 using FinTracker.Domain.Interfaces.Repositories;
+using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
 using FinTracker.Domain.Models.ModelsToHelp;
+using MapsterMapper;
 
 namespace FinTracker.Data.Services;
 
-public class TransactionService(ITransactionRepository transactionRepository) : ITransactionService
+public class TransactionService(ITransactionRepository transactionRepository,
+    IMapper mapper) : ITransactionService
 {
     public async Task BulkUpdateAsync(BulkUpdateDto dto)
     {
@@ -15,7 +18,7 @@ public class TransactionService(ITransactionRepository transactionRepository) : 
         await transactionRepository.SaveChangesAsync();
     }
 
-    public async Task<Transaction> CreateAsync(CreateTransactionDto dto)
+    public async Task<TransactionDto> CreateAsync(CreateTransactionDto dto)
     {
         var newId = Guid.NewGuid();
         var newTransaction = new Transaction()
@@ -39,7 +42,7 @@ public class TransactionService(ITransactionRepository transactionRepository) : 
 
         await transactionRepository.AddAsync(newTransaction);
         await transactionRepository.SaveChangesAsync();
-        return newTransaction;
+        return mapper.Map<TransactionDto>(newTransaction);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -48,12 +51,14 @@ public class TransactionService(ITransactionRepository transactionRepository) : 
         await transactionRepository.SaveChangesAsync();
     }
 
-    public async Task<Transaction> GetByIdAsync(Guid id, bool includeDeleted)
+    public async Task<TransactionDto> GetByIdAsync(Guid id, bool includeDeleted)
     {
-        return await transactionRepository.EnsureExistsAsync(id, includeDeleted);
+        var transaction = await transactionRepository.EnsureExistsAsync(id, includeDeleted);
+
+        return mapper.Map<TransactionDto>(transaction);
     }
 
-    public async Task<Transaction> UpdateAsync(Guid id, UpdateTransactionDto dto)
+    public async Task<TransactionDto> UpdateAsync(Guid id, UpdateTransactionDto dto)
     {
         var transaction = await transactionRepository.EnsureExistsAsync(id);
 
@@ -94,17 +99,17 @@ public class TransactionService(ITransactionRepository transactionRepository) : 
         await transactionRepository.UpdateAsync(transaction);
         await transactionRepository.SaveChangesAsync();
 
-        return transaction;
+        return mapper.Map<TransactionDto>(transaction);
     }
 
-    public async Task<PagedResponse<Transaction>> GetFilteredAsync(TransactionFilter filter, bool includeDeleted)
+    public async Task<PagedResponse<TransactionDto>> GetFilteredAsync(TransactionFilter filter, bool includeDeleted)
     {
         var total = await transactionRepository.GetFilteredCountAsync(filter, includeDeleted);
         var items = await transactionRepository.GetFilteredAsync(filter, includeDeleted);
 
-        return new PagedResponse<Transaction>
+        return new PagedResponse<TransactionDto>
         {
-            Items = items,
+            Items = mapper.Map<List<TransactionDto>>(items).ToList(),
             Total = total,
             Page = filter.Page,
             PageSize = filter.PageSize

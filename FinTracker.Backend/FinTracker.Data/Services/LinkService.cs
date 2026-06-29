@@ -2,13 +2,15 @@
 using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
+using MapsterMapper;
 
 namespace FinTracker.Data.Services;
 
 public class LinkService(ILinkRepository linkRepository,
-    ITransactionRepository transactionRepository) : ILinkService
+    ITransactionRepository transactionRepository,
+    IMapper mapper) : ILinkService
 {
-    public async Task<TransactionLink> AddTransactionAsync(Guid linkId, Guid transactionId)
+    public async Task<TransactionLinkDto> AddTransactionAsync(Guid linkId, Guid transactionId)
     {
         var link = await linkRepository.EnsureExistsAsync(linkId);
 
@@ -27,10 +29,10 @@ public class LinkService(ILinkRepository linkRepository,
         await linkRepository.UpdateAsync(link);
         await linkRepository.SaveChangesAsync();
 
-        return link;
+        return mapper.Map<TransactionLinkDto>(link);
     }
 
-    public async Task<TransactionLink> CreateAsync(CreateTransactionLinkDto dto)
+    public async Task<TransactionLinkDto> CreateAsync(CreateTransactionLinkDto dto)
     {
         if (dto.TransactionIds.Count < 2)
             throw new ArgumentException("Связь должна содержать минимум две транзакции");
@@ -54,7 +56,7 @@ public class LinkService(ILinkRepository linkRepository,
         await linkRepository.AddAsync(link);
         await linkRepository.SaveChangesAsync();
 
-        return link;
+        return mapper.Map<TransactionLinkDto>(link);
     }
 
     public async Task DeleteAsync(Guid id)
@@ -65,9 +67,10 @@ public class LinkService(ILinkRepository linkRepository,
         await linkRepository.SaveChangesAsync();
     }
 
-    public async Task<TransactionLink> GetByIdAsync(Guid id)
+    public async Task<TransactionLinkDto> GetByIdAsync(Guid id)
     {
-        return await linkRepository.EnsureExistsWithEntriesAsync(id);
+        var link = await linkRepository.EnsureExistsWithEntriesAsync(id);
+        return mapper.Map<TransactionLinkDto>(link);
     }
 
     public async Task RemoveTransactionAsync(Guid linkId, Guid transactionId)

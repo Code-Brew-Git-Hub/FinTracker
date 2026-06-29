@@ -7,6 +7,8 @@ using FinTracker.Domain.Dtos.Transactions;
 using FinTracker.Domain.Models;
 using Mapster;
 
+namespace FinTracker.Data;
+
 public static class MappingConfig
 {
     public static void Configure()

@@ -1,23 +1,20 @@
 ﻿using FinTracker.Domain.Dtos.TransactionLinks;
 using FinTracker.Domain.Dtos.Universal;
 using FinTracker.Domain.Interfaces.Services;
-using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinTracker.API.Controllers;
 
 [ApiController]
 [Route("api/links")]
-public class LinksController(ILinkService linkService, IMapper mapper) : ControllerBase
+public class LinksController(ILinkService linkService) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<TransactionLinkDto>>> GetById([FromRoute] Guid id)
     {
         var link = await linkService.GetByIdAsync(id);
 
-        var linkDto = mapper.Map<TransactionLinkDto>(link);
-
-        return Ok(ApiResponse.Ok(linkDto));
+        return Ok(ApiResponse.Ok(link));
     }
 
     [HttpPost]
@@ -25,9 +22,7 @@ public class LinksController(ILinkService linkService, IMapper mapper) : Control
     {
         var createdLink = await linkService.CreateAsync(dto);
 
-        var createdLinkDto = mapper.Map<TransactionLinkDto>(createdLink);
-
-        return Ok(ApiResponse.Ok(createdLinkDto));
+        return Ok(ApiResponse.Ok(createdLink));
     }
 
     [HttpPost("{id:guid}/transactions")]
@@ -35,9 +30,7 @@ public class LinksController(ILinkService linkService, IMapper mapper) : Control
     {
         var link = await linkService.AddTransactionAsync(id, dto.TransactionId);
 
-        var linkDto = mapper.Map<TransactionLinkDto>(link);
-
-        return Ok(ApiResponse.Ok(linkDto));
+        return Ok(ApiResponse.Ok(link));
     }
 
     [HttpDelete("{id:guid}/transactions/{transactionId:guid}")]

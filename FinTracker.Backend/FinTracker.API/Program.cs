@@ -1,6 +1,5 @@
 using FinTracker.Data;
 using FinTracker.Domain.Dtos.Universal;
-using Mapster;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,8 +18,7 @@ public class Program
         builder.Services.AddParser();
         builder.Services.AddContext();
         builder.Services.AddMemoryCache();
-        MappingConfig.Configure();
-        builder.Services.AddMapster();
+        builder.Services.AddMapper();
         builder.Services.AddControllers();
         builder.Services.AddSwaggerGen();
         // Настройка сайтов, с которых могут обращаться к api
