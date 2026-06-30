@@ -2,7 +2,7 @@
 using FinTracker.Domain.Models;
 using FinTracker.Domain.Models.ModelsToHelp;
 
-namespace FinTracker.Domain.Interfaces.Repositories;
+namespace FinTracker.Application.Abstractions.Repositories;
 
 public interface ITransactionRepository : IRepository<Transaction>
 {

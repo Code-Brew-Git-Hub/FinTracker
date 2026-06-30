@@ -1,9 +1,8 @@
 ﻿using FinTracker.Domain.Dtos.Transactions;
 using FinTracker.Domain.Dtos.Universal;
-using FinTracker.Domain.Models;
 using FinTracker.Domain.Models.ModelsToHelp;
 
-namespace FinTracker.Domain.Interfaces.Services;
+namespace FinTracker.Application.Abstractions.Services;
 
 public interface ITransactionService
 {

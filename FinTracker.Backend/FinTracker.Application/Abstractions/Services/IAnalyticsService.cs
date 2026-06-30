@@ -1,7 +1,7 @@
 ﻿using FinTracker.Domain.Dtos.Analytics;
 using FinTracker.Domain.Enums;
 
-namespace FinTracker.Domain.Interfaces.Services;
+namespace FinTracker.Application.Abstractions.Services;
 
 public interface IAnalyticsService
 {

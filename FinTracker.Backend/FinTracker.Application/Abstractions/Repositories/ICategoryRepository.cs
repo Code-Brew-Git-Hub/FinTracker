@@ -1,6 +1,6 @@
 ﻿using FinTracker.Domain.Models;
 
-namespace FinTracker.Domain.Interfaces.Repositories;
+namespace FinTracker.Application.Abstractions.Repositories;
 
 public interface ICategoryRepository : IRepository<Category>
 {

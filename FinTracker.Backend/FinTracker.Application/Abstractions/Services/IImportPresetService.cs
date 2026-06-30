@@ -1,6 +1,6 @@
 using FinTracker.Domain.Dtos.Import;
 
-namespace FinTracker.Domain.Interfaces.Services;
+namespace FinTracker.Application.Abstractions.Services;
 
 public interface IImportPresetService
 {

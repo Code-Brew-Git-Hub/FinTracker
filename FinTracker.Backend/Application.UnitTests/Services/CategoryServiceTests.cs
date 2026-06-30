@@ -1,5 +1,5 @@
-﻿using FinTracker.Application.Services;
-using FinTracker.Domain.Interfaces.Repositories;
+﻿using FinTracker.Application.Abstractions.Repositories;
+using FinTracker.Application.Services;
 using FinTracker.Domain.Models;
 using MapsterMapper;
 using Microsoft.Extensions.Caching.Memory;

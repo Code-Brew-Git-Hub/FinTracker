@@ -1,7 +1,7 @@
 ﻿using FinTracker.Domain.Dtos.Analytics;
 using FinTracker.Domain.Models;
 
-namespace FinTracker.Domain.Interfaces.Repositories;
+namespace FinTracker.Application.Abstractions.Repositories;
 
 public interface IAnalyticsRepository
 {

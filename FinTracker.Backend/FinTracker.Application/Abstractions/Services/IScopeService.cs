@@ -1,7 +1,7 @@
 ﻿using FinTracker.Domain.Dtos.Scopes;
 using FinTracker.Domain.Dtos.Transactions;
 
-namespace FinTracker.Domain.Interfaces.Services;
+namespace FinTracker.Application.Abstractions.Services;
 
 public interface IScopeService
 {

@@ -1,6 +1,6 @@
-﻿using FinTracker.Domain.Dtos.Transactions;
+﻿using FinTracker.Application.Abstractions.Services;
+using FinTracker.Domain.Dtos.Transactions;
 using FinTracker.Domain.Dtos.Universal;
-using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models.ModelsToHelp;
 using Microsoft.AspNetCore.Mvc;
 

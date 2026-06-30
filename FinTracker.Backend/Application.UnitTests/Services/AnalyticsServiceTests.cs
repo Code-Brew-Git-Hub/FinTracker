@@ -1,7 +1,7 @@
+using FinTracker.Application.Abstractions.Repositories;
 using FinTracker.Application.Services;
 using FinTracker.Domain.Dtos.Analytics;
 using FinTracker.Domain.Enums;
-using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Models;
 using Moq;
 

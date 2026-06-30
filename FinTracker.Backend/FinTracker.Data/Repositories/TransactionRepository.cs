@@ -1,5 +1,5 @@
-﻿using FinTracker.Domain.Dtos.Transactions;
-using FinTracker.Domain.Interfaces.Repositories;
+﻿using FinTracker.Application.Abstractions.Repositories;
+using FinTracker.Domain.Dtos.Transactions;
 using FinTracker.Domain.Models;
 using FinTracker.Domain.Models.ModelsToHelp;
 using Microsoft.EntityFrameworkCore;

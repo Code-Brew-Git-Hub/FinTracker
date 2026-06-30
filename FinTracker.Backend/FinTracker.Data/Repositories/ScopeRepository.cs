@@ -1,4 +1,4 @@
-﻿using FinTracker.Domain.Interfaces.Repositories;
+﻿using FinTracker.Application.Abstractions.Repositories;
 using FinTracker.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 

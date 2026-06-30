@@ -1,5 +1,5 @@
-﻿using FinTracker.Application.Services;
-using FinTracker.Domain.Interfaces.Services;
+﻿using FinTracker.Application.Abstractions.Services;
+using FinTracker.Application.Services;
 using FinTracker.Parser;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;

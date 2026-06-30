@@ -1,6 +1,6 @@
-﻿using FinTracker.Domain.Dtos.TransactionLinks;
-using FinTracker.Domain.Interfaces.Repositories;
-using FinTracker.Domain.Interfaces.Services;
+﻿using FinTracker.Application.Abstractions.Repositories;
+using FinTracker.Application.Abstractions.Services;
+using FinTracker.Domain.Dtos.TransactionLinks;
 using FinTracker.Domain.Models;
 using MapsterMapper;
 

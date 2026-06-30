@@ -1,6 +1,6 @@
+using FinTracker.Application.Abstractions.Repositories;
 using FinTracker.Application.Services;
 using FinTracker.Domain.Dtos.Positions;
-using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Models;
 using MapsterMapper;
 using Moq;

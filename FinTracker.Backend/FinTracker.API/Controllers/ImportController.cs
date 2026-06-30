@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
+using FinTracker.Application.Abstractions.Services;
 using FinTracker.Domain.Dtos.Import;
 using FinTracker.Domain.Dtos.Universal;
-using FinTracker.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinTracker.API.Controllers;

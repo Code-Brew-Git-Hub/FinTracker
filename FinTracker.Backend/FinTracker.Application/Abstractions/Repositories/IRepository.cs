@@ -1,4 +1,4 @@
-﻿namespace FinTracker.Domain.Interfaces.Repositories;
+﻿namespace FinTracker.Application.Abstractions.Repositories;
 
 public interface IRepository<T>
     where T : class

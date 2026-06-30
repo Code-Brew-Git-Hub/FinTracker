@@ -1,7 +1,6 @@
 ﻿using FinTracker.Domain.Dtos.Tags;
-using FinTracker.Domain.Models;
 
-namespace FinTracker.Domain.Interfaces.Services;
+namespace FinTracker.Application.Abstractions.Services;
 
 public interface ITagService
 {

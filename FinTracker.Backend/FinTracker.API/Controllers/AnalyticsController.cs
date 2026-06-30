@@ -1,7 +1,7 @@
-﻿using FinTracker.Domain.Dtos.Analytics;
+﻿using FinTracker.Application.Abstractions.Services;
+using FinTracker.Domain.Dtos.Analytics;
 using FinTracker.Domain.Dtos.Universal;
 using FinTracker.Domain.Enums;
-using FinTracker.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinTracker.API.Controllers;
