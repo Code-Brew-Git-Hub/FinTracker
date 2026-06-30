@@ -1,3 +1,4 @@
+using FinTracker.Application;
 using FinTracker.Data;
 using FinTracker.Domain.Dtos.Universal;
 using Microsoft.AspNetCore.Diagnostics;

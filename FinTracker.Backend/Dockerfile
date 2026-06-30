@@ -3,6 +3,7 @@ WORKDIR /src
 
 COPY FinTracker.Backend.slnx .
 COPY FinTracker.API/ FinTracker.API/
+COPY FinTracker.Application/ FinTracker.Application/
 COPY FinTracker.Data/ FinTracker.Data/
 COPY FinTracker.Domain/ FinTracker.Domain/
 COPY FinTracker.Parser/ FinTracker.Parser/

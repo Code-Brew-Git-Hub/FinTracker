@@ -1,3 +1,4 @@
+using FinTracker.Application;
 using FinTracker.Domain.Dtos.Import;
 using FinTracker.Domain.Models;
 using Microsoft.EntityFrameworkCore;
