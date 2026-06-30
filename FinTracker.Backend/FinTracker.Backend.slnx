@@ -1,7 +1,12 @@
 <Solution>
-  <Project Path="FinTracker.API/FinTracker.API.csproj" />
-  <Project Path="FinTracker.Application/FinTracker.Application.csproj" />
-  <Project Path="FinTracker.Data/FinTracker.Data.csproj" />
-  <Project Path="FinTracker.Domain/FinTracker.Domain.csproj" />
-  <Project Path="FinTracker.Parser/FinTracker.Parser.csproj" />
+  <Folder Name="/src/">
+    <Project Path="FinTracker.API/FinTracker.API.csproj" />
+    <Project Path="FinTracker.Application/FinTracker.Application.csproj" />
+    <Project Path="FinTracker.Data/FinTracker.Data.csproj" />
+    <Project Path="FinTracker.Domain/FinTracker.Domain.csproj" />
+    <Project Path="FinTracker.Parser/FinTracker.Parser.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="Application.UnitTests/Application.UnitTests.csproj" />
+  </Folder>
 </Solution>
