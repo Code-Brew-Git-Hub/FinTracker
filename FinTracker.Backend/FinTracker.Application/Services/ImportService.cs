@@ -7,7 +7,7 @@ using FinTracker.Domain.Models;
 using FinTracker.Parser;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class ImportService(
     TransactionParser parser,

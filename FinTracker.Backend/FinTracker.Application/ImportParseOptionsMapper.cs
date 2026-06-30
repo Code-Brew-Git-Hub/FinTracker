@@ -1,9 +1,8 @@
 using System.Text.Json;
 using FinTracker.Domain.Dtos.Import;
-using FinTracker.Domain.Models;
 using FinTracker.Parser.Models;
 
-namespace FinTracker.Data;
+namespace FinTracker.Application;
 
 public static class ImportParseOptionsMapper
 {

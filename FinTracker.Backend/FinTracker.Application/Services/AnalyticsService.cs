@@ -1,13 +1,13 @@
-﻿using FinTracker.Domain.Dtos.Analytics;
+﻿using System.Globalization;
+using FinTracker.Domain.Dtos.Analytics;
 using FinTracker.Domain.Dtos.Categories;
 using FinTracker.Domain.Dtos.Scopes;
 using FinTracker.Domain.Dtos.Tags;
 using FinTracker.Domain.Enums;
 using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Interfaces.Services;
-using System.Globalization;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class AnalyticsService(IAnalyticsRepository analyticsRepository) : IAnalyticsService
 {

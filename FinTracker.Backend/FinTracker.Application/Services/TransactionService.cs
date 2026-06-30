@@ -7,7 +7,7 @@ using FinTracker.Domain.Models;
 using FinTracker.Domain.Models.ModelsToHelp;
 using MapsterMapper;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class TransactionService(ITransactionRepository transactionRepository,
     IMapper mapper) : ITransactionService

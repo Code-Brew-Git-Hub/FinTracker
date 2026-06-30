@@ -4,7 +4,7 @@ using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
 using MapsterMapper;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class PositionService(IPositionRepository itemRepository,
     ITransactionRepository transactionRepository,

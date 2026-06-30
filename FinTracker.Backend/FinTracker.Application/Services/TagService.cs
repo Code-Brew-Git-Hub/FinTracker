@@ -1,11 +1,10 @@
-﻿
-using FinTracker.Domain.Dtos.Tags;
+﻿using FinTracker.Domain.Dtos.Tags;
 using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
 using MapsterMapper;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class TagService(ITagRepository tagRepository,
     IMapper mapper) : ITagService

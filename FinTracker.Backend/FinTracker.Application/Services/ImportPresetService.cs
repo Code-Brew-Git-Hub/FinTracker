@@ -4,7 +4,7 @@ using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class ImportPresetService(
     IImportPresetRepository repository,

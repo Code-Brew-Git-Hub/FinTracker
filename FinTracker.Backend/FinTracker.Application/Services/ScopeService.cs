@@ -5,7 +5,7 @@ using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Domain.Models;
 using MapsterMapper;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class ScopeService(IScopeRepository scopeRepository,
     ITransactionRepository transactionRepository,

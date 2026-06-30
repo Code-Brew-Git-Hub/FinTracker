@@ -1,15 +1,11 @@
 ﻿using FinTracker.Domain.Interfaces.Repositories;
-using FinTracker.Domain.Interfaces.Services;
 using FinTracker.Data.Repositories;
-using FinTracker.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using FinTracker.Parser;
-using Mapster;
 
 namespace FinTracker.Data;
 
-public static class Extensions
+public static class DataExtensions
 {
     public static IServiceCollection AddContext(this IServiceCollection serviceCollection)
     {
@@ -49,35 +45,5 @@ public static class Extensions
 
         return serviceCollection;
     }
-
-    public static IServiceCollection AddServices(this IServiceCollection serviceCollection)
-    {
-        serviceCollection.AddScoped<ITransactionService, TransactionService>();
-        serviceCollection.AddScoped<IScopeService, ScopeService>();
-        serviceCollection.AddScoped<ICategoryService, CategoryService>();
-        serviceCollection.AddScoped<ITagService, TagService>();
-        serviceCollection.AddScoped<IImportService, ImportService>();
-        serviceCollection.AddScoped<IImportPresetService, ImportPresetService>();
-        serviceCollection.AddScoped<IPositionService, PositionService>();
-        serviceCollection.AddScoped<ILinkService, LinkService>();
-        serviceCollection.AddScoped<IAnalyticsService, AnalyticsService>();
-
-        return serviceCollection;
-    }
-
-    public static IServiceCollection AddParser(this IServiceCollection serviceCollection)
-    {
-        serviceCollection.AddScoped<CsvParser>();
-        serviceCollection.AddScoped<TransactionParser>();
-
-        return serviceCollection;
-    }
-
-    public static IServiceCollection AddMapper(this IServiceCollection serviceCollection)
-    {
-        MappingConfig.Configure();
-        serviceCollection.AddMapster();
-
-        return serviceCollection;
-    }
+    
 }

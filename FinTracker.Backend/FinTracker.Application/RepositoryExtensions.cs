@@ -1,7 +1,7 @@
 ﻿using FinTracker.Domain.Interfaces.Repositories;
 using FinTracker.Domain.Models;
 
-namespace FinTracker.Data;
+namespace FinTracker.Application;
 
 public static class RepositoryExtensions
 {

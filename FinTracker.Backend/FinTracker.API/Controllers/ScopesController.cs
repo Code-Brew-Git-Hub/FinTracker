@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using FinTracker.Data.Services;
 using FinTracker.Domain.Dtos.Universal;
 using FinTracker.Domain.Dtos.Scopes;
-using MapsterMapper;
 using FinTracker.Domain.Dtos.Transactions;
 using FinTracker.Domain.Interfaces.Services;
 

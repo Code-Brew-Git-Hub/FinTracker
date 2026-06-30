@@ -5,7 +5,7 @@ using FinTracker.Domain.Models;
 using MapsterMapper;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace FinTracker.Data.Services;
+namespace FinTracker.Application.Services;
 
 public class CategoryService(
     ICategoryRepository categoryRepository,
