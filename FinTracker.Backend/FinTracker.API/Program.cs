@@ -1,7 +1,4 @@
-using FinTracker.Application;
 using FinTracker.Data;
-using FinTracker.Domain.Dtos.Universal;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinTracker.API;
@@ -14,25 +11,7 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddRepositories();
-        builder.Services.AddServices();
-        builder.Services.AddParser();
-        builder.Services.AddContext();
-        builder.Services.AddMemoryCache();
-        builder.Services.AddMapper();
-        builder.Services.AddControllers();
-        builder.Services.AddSwaggerGen();
-        // Настройка сайтов, с которых могут обращаться к api
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("Dev", policy =>
-            {
-                policy
-                    .WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()!)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
-            });
-        });
+        builder.ConfigureBuilder();
 
         var app = builder.Build();
 
@@ -44,27 +23,8 @@ public class Program
             await ImportPresetSeedData.SeedAsync(db);
         }
 
-        // Обработка ошибок
-        app.UseExceptionHandler(appBuilder => appBuilder.Run(async context =>
-        {
-            var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        app.ConfigureApp();
 
-            var (statusCode, message) = exception switch
-            {
-                KeyNotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
-                ArgumentException ex => (StatusCodes.Status400BadRequest, ex.Message),
-                _ => (StatusCodes.Status500InternalServerError, "Internal server error")
-            };
-
-            context.Response.StatusCode = statusCode;
-            await context.Response.WriteAsJsonAsync(ApiResponse<object>.Fail(message));
-        }));
-
-        app.UseCors("Dev");
-
-        app.MapControllers();
-        app.UseSwagger();
-        app.UseSwaggerUI();
         app.Run();
     }
 }
